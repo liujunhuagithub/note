@@ -134,6 +134,8 @@ for (let key of Object.keys(o)) {
 
 length赋一个新的值会导致变化
 
+默认根据str排序，数字也是
+
 
 
 ## object
@@ -221,9 +223,37 @@ obj.getAge(); // 25
 
 
 
-### 高阶函数
+### 高阶函数（针对Array）
 
-高阶函数仅支持数组array
+```js
+//map  (element, index可选, self可选) 
+arr.map(i=>)
+
+//filter   (element, index可选 , self可选) 
+var r = arr.filter(function (x) {
+    return x % 2 !== 0;
+});
+
+//reducecallback （执行数组中每个值的函数，包含四个参数）
+    1、previousValue 积累值（上一次调用回调返回的值，或者是提供的初始值（initialValue））
+    2、currentValue （数组中当前被处理的元素）
+    3、index （当前元素在数组中的索引）可选
+    4、array （调用 reduce 的数组）可选
+initialValue （可选，作为第一次调用 callback 的第一个参数。）
+
+arr.reduce(callback,[initialValue]):
+
+//sort 类似java 正序返回-1
+arr.sort(function (x, y) {
+    if (x < y) {
+        return 1;
+    }
+    if (x > y) {
+        return -1;
+    }
+    return 0;
+});
+```
 
 
 
@@ -327,37 +357,20 @@ Promise.race([p1, p2]).then(function (result) {
 
 
 
-### async await
+### async await便于构造Promise异步执行逻辑，是基于promises的语法糖
 
+1. 
 
+2. **async **声明该函数是一个**异步**函数，==返回值自动包装成Promise(resolve)==。该函数内部触发异步操作，`但是同步执行非异步操作`。==可直接进行then操作==
 
-async 是“异步”的简写，而 await 可以认为是 async wait 的简写。
- async 用于申明一个 function 是异步的，而 await 用于等待一个异步方法执行完成。
-  async 是一个修饰符，async 定义的函数会默认的返回一个Promise对象resolve的值，因此对async函数可以直接进行then操作,返回的值即为then方法的传入函数
+3. **await** ***<u>只能放在 async 函数内部</u>***
 
+   后跟Promise：==阻塞后面的代码，等待标识的Promise返回resolve值==，获取返回值 
+   后跟非Promise：按同步程序返回值处理
 
+4. 当 async 函数中只要一个 await 出现 reject 状态，则后面的 await 都不会被执行，可.catch()统一异常处理
 
-await 关键字 只能放在 async 函数内部， await关键字的作用 就是获取 Promise中返回的内容， 获取的是Promise函数中resolve或者reject的值
-// 如果await 后面并不是一个Promise的返回值，则会按照同步程序返回值处理
-
-
-
-async 作为一个关键字放到函数的前面，用于表示函数是一个异步函数，该函数的执行不会阻塞后面代码的执行
-
-
-
-await是等待，只能放到async函数里面，在后面放一个返回promise对象的表达式
-
-**当 async 函数中只要一个 await 出现 reject 状态，则后面的 await 都不会被执行,可以添加 try/catch**
-
-
-
-如果它等到的不是一个 `Promise` 对象，那 await 表达式的运算结果就是它等到的东西。
- 如果它等到的是一个 `Promise` 对象，`await` 就会阻塞后面的代码，等着 `Promise` 对象 `resolve`，然后得到 `resolve` 的值，作为 `await` 表达式的运算结果。
-
-
-
-
+5. **Promise.all( [ Promise数组 ] )**：全部执行完毕返回结果Array
 
 ## 内置对象
 
@@ -409,5 +422,34 @@ getTime()//获取时间戳
 
 
 
+Node准备的`exports`变量和`module.exports`变量实际上是同一个变量，并且初始化为空对象`{}`可以直接往里面加东西。exports会暴露出去
 
+exports不能直接替换成其他，必须用module.exports
+
+如果要输出一个键值对象`{}`，可以利用`exports`这个已存在的空对象`{}`，并继续在上面添加新的键值；
+
+如果要输出一个函数或数组，必须直接对`module.exports`对象赋值
+
+
+
+`odule.exports = xxx`的方式来输出模块变量万能
+
+
+
+ES6（ES2015）中提出了单一的本机模块标准。
+
+默认情况下，ES6模块中的**所有内容都是私有的**，并且以严格模式运行（不需要'use strict'）。
+
+
+
+使用`export`公开变量，函数和类  可分别expost每个   或 统一封装对象后export
+
+
+
+```js
+import { sum as addAll, mult as multiplyAll } from './lib.js';
+
+import * as lib from './lib.js';
+
+```
 

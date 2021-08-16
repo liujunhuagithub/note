@@ -1,0 +1,3 @@
+同一statement线程不安全，preparestatement也线程不安全
+
+static方法不能创建 普通非静态内部类对象

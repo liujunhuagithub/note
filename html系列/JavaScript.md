@@ -83,9 +83,10 @@
 
 <img src="20201015205742198.gif#pic_center" alt="在这里插入图片描述" style="zoom:50%;" />
 
-都处于 Task Queue 中时，微任务 > 宏任务
+Task Queue 的异步任务分为   `微任务` 、`宏任务`；**微任务优先**
 宏任务	setTimeout 、setInterval 、UI rendering
-微任务	promise 、requestAnimationFrame
+微任务	promise 、requestAnimationFrame          (Promise>setTimeout )
+
 
 Map本质上时二维数组  const arr = [...map]输出二维数组，可以更具二维数组生曾map。只能get访问，不能[ ]
 

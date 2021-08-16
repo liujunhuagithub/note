@@ -75,11 +75,11 @@
 4. 主线程不断重复上面的第三步。
    
 
-<img src="eventlppo机制" alt="这里写图片描述" style="zoom: 50%;" />
+<img src="eventlppo机制" alt="这里写图片描述" style="zoom: 33%;" />
 
 
 
-主线程从”任务队列”中读取事件，这个过程是循环不断的，所以整个的这种运行机制又称为Event Loop（事件循环）
+主线程从”任务队列”中读取事件，这个过程是==循环不断==的，所以整个的这种运行机制又称为Event Loop（事件循环）
 
 <img src="20201015205742198.gif#pic_center" alt="在这里插入图片描述" style="zoom:50%;" />
 
@@ -88,140 +88,248 @@ Task Queue 的异步任务分为   `微任务` 、`宏任务`；**微任务优�
 微任务	promise 、requestAnimationFrame          (Promise>setTimeout )
 
 
-Map本质上时二维数组  const arr = [...map]输出二维数组，可以更具二维数组生曾map。只能get访问，不能[ ]
+
+# JS
+
+## 基本语法
+
+### 基本类型
+
+1. 反引号\`\`:用于模板字符串：**\`pre  ${varName}   suf\` **和   **多行字符串**
+2. str：作为字符的数组
+
+### 运算符
+
+1. 比较运算符：始终坚持使用`===`比较，唯一能判断`NaN`的方法是通过`isNaN()`函数
+2. boolean：null '' undefine转换为false  非空白转为true
+3. 大多数情况用`null`。`undefined`仅仅在判断函数参数是否传递的情况下有用
+4. 异步错误必须==回调函数中处理try-catch==
+
+## 循环
+
+`for-of`针对`iterable`:Map、Set、Array的**forEach**方法快捷遍历。==不支持**对象objec**t==，需要Object.keys才能
+
+```js
+map.forEach(function (value, key, map) {
+    console.log(value);
+}//Map支持k-v，但是Array、Set不支持
+```
+
+遍历**obj**：①for-in+hasOwnProperty()     ②for-of遍历properName
+
+```js
+for (var key in o) {
+    if (o.hasOwnProperty(key)) {
+        console.log(key); // 'name', 'age', 'city'
+    }
+}
+for (let key of Object.keys(o)) {
+    console.log(o[key]);
+}
+```
 
 
 
+## Array
+
+length赋一个新的值会导致变化
 
 
-for-of  = froEach支持array map set，不支持对象object，需要Object.keys
 
-对象的[]访问针对属性名，而非索引
+## object
 
-解构赋值，支持作为函数参数
+1. ==所有属性key都是字符串(自动转换)==，value任意类型
+
+2. 访问方式：①obj.proName    ②obj[  'proName '  **属性名str**  ]，不是str自动转换
+
+3. `in`操作符判断obj是否有某一property，是否xiaoming自身拥有的，而不是来自原型可以用`hasOwnProperty()`
+
+   ```javascript
+   'toString' in xiaoming; // true
+   xiaoming.hasOwnProperty('name'); // true
+   xiaoming.hasOwnProperty('toString'); // false
+   ```
+
+4. Object.keys 遍历对象属性包括父类+本类， 仅可枚举属性，无原型
+
+   **Object.getOwnPropertyNames**  获取属性包括父类+本类，包括可枚举和不可枚举的属性
+
+   hasOwnProperty()   是否自身拥有（包括父+子）的，而不是原型得到的
+
+
+
+## Map和Set
+
+1. **KEY可为任意类型，而Object的property只能是str**
+2. Map本质上时**二维数组**  const arr = [...map]输出二维数组的元素  `[keyn,  value1]`  ；Set可用Array初始化
+3. **只能用get访问，不能[ ]**,    Object可以**[  ]**访问
+4. get/has/delete/set方法操作
+
+
+
+## 解构赋值
+
+==支持作为函数参数==，可用于array(  )  对象{  }
 
 ```
 let {name=默认值, 原属性名:新变量} = person;
 ```
 
+支持...array/map 打散
+
+
+
+## 函数
+
+### this问题
+
+箭头函数完全修复了`this`的指向，`this`总是指向词法作用域，也就是外层调用者`obj`：
+
+```js
+getAge.apply(xiaoming, [参数数组]); //  this指向xiaoming, 参数为数组
+getAge.call(null, 3, 5, 4); // this指向xiaoming, 参数为...
+```
+
+
+
+### 箭头函数
+
+```js
+// 两个参数:
+(x, y) => x * x + y * y
+// 无参数:
+() => 3.14
+// 可变参数:
+(x, y, ...rest) => {
+    return a;
+}
+```
+
+箭头函数完全修复`this`的指向，无需apply和call。`this`总是指向**外层调用者`obj`**：
+
+```js
+var obj = {
+    birth: 1990,
+    getAge: function () {
+        var b = this.birth; // 1990
+        var fn = () => new Date().getFullYear() - this.birth; // this指向obj对象
+        return fn();
+    }
+};
+obj.getAge(); // 25
+```
+
+
+
+### 高阶函数
+
 高阶函数仅支持数组array
 
 
 
+## Class(简化原型链代码)
 
-
-var user = {name:'张三',age:10,sex:'男'}
-
-for(let index of Object.keys(user)){
- console.log(index+':'+user[index])
- //"name:张三""age:10""sex:男"
+```js
+class Student {
+    constructor(name) {
+        this.name = name;
+    }
 }
 
-箭头函数完全修复了`this`的指向，`this`总是指向词法作用域，也就是外层调用者`obj`：
-
-
-
-```
-getAge.apply(xiaoming, []); // 25, this指向xiaoming, 参数为空
-```
-
-Object.keys 遍历对象属性包括父类+本类， 仅可枚举属性，无原型
-
-**Object.getOwnPropertyNames**  获取属性包括父类+本类，包括可枚举和不可枚举的属性
-
-hasOwnProperty()   是否自身拥有（包括父+子）的，而不是原型得到的
-
-
-
-var obj = {"name":"tom","sex":"male"}；
-
-Object.defineProperty(obj, "age", {value:"18", enumerable:false});//增加不可枚举的属性age
-
-Object.prototype.protoPer1 = function(){console.log("name is tom");};//通过原型链增加属性，为一个函数
-
-Object.prototype.protoPer2 = 2;通过原型链增加属性，为一个整型值2
-
-console.log("Object.keys:")
-
-console.log(Object.keys(obj));
-
-
-
-```
-var xiaoming = {
-    name: '小明',
-    birth: 1990,
-    school: 'No.1 Middle School',
-    height: 1.70,
-    weight: 65,
-    score: null
-};          检测xiaoming是否拥有某一属性，可以用in操作符
-是否是xiaoming自身拥有的，而不是继承得到的，可以用hasOwnProperty()方法
-'name' in xiaoming; // true
-'grade' in xiaoming; // false
-
-xiaoming.hasOwnProperty('name'); // true
-xiaoming.hasOwnProperty('toString'); // false
-```
-
-
-
-
-
-```
-JSON.stringify(xiaoming, ['name', 'skills'  属性名list], '  '缩进);
-```
-
-精确控制如何序列化小明，可以给`xiaoming`定义一个`toJSON()`的方法，直接返回JSON应该序列化的数据：
-
-```
-var xiaoming = {
-    name: '小明',
-    age: 14,
-    gender: true,
-    height: 1.65,
-    grade: null,
-    'middle-school': '\"W3C\" Middle School',
-    skills: ['JavaScript', 'Java', 'Python', 'Lisp'],
-    toJSON: function () {
-        return { // 只输出name和age，并且改变了key：
-            'Name': this.name,
-            'Age': this.age
-        };
+class PrimaryStudent extends Student {
+    constructor(name, grade) {
+        super(name); // 记得用super调用父类的构造方法!
+        this.grade = grade;
     }
-};
-
-JSON.stringify(xiaoming); // '{"Name":"小明","Age":14}'
+}
 ```
 
-var obj = JSON.parse('{"name":"小明","age":14}', function (key, value) {
-    if (key === 'name') {
-        return value + '同学';
-    }
-    return value;
+## Promise  承诺内部有函数将来会执行，即内部有异步操作
+
+==本身是同步，但是内部会触发异步方法==，Promise链根据不同状态进行不同调用。
+
+> **Promise正常结束调用resolve( )方法，异常则调用reject( )方法**
+
+### 状态转换
+
+![img](v2-bcb0b896fc17b4f99b7ea9e4dfbd85d3_720w.jpg)
+
+- pending: 初始状态，不是成功或失败状态。
+
+- fulfilled: 意味着操作成功完成。
+
+  **then()**：注册Promise正常结束的回调，多次then会根据顺序串行执行，参数为resolve(value )保存的value 
+
+- rejected: 意味着操作失败。
+
+  **catch()**：注册Promise失败的回调函数，异常可传递直至catch( )捕获，参数为reject(value )保存的value 
+
+- fulfilled 和 rejected 状态只能由 pending 转化而来，两者之间不能互相转换。==只能转换一次==
+
+### 构造方法
+
+```js
+new Promise(function (resolve, reject) { 
+    setTimeout(function () {
+        if (timeOut < 1) {
+            resolve('200 OK');          //转换成fulfilled ，设置值，传递给then回调
+        }
+        else {
+            reject('timeout in ');       //转换rejected ，设置值，传递给catch回调
+        }
+    }, timeOut * 1000);
+})
+Promise.resolve()    //生成fulfilled 状态的Promise
+Promise.reject()	//生成rejected 状态的Promise
+```
+
+1. resolve(value )执行：转换成fulfilled状态，设置值value，传递给then回调，回调参数为保存的value值。
+2. reject(value )执行：转换成rejected 状态，设置值value，传递给catch回调，回调参数为保存的value值。
+3.  catch错误发生时专门捕获异常，==整条调用链==都可以被.catch捕获，用于==统一异常处理==
+
+### 调用链
+
+有多次then()可==串行处理==，then() catch()设置的回调函数有不同的返回值，==但都会处理成全新的Promise==
+
+```js
+job1.then(job2).then(job3).catch(handleError); //同步执行
+
+Promise.reject().catch(function() {
+  return 'Hello World';
+})
+.then(function(value) {
+  console.log(`fulfilled: ${value}`); // 'fulfilled: Hello World'
+})
+.catch(function(value) {
+  console.log(`rejected: ${value}`);
+})
+```
+
+1. **then()和catch()返回普通对象，==全部==包装成resolve(fulfilled)状态的Promise对象，与原状态无关**
+2. then()和catch()可以返回`指定状态`的Promise
+3. then()和catch()抛出错误`时，==全部==包装成rejected(rejected)状态的Promise对象
+
+### 并行多个Promise
+
+1. `Promise.all([Promise数组])`：**所有**Promise都执行完毕才继续，==生成数组往后传递==
+2. `Promise.race([Promise数组])`：**任意一个**Promise执行完就返回
+
+```js
+// 同时执行p1和p2，并在它们都完成后执行then:
+Promise.all([p1, p2]).then(function (results) {
+    console.log(results); // 获得一个Array: ['P1', 'P2']
 });
-console.log(JSON.stringify(obj)); // {name: '小明同学', age: 14}
 
-
-
-
-
+Promise.race([p1, p2]).then(function (result) {
+    console.log(result); // 'P1'
+});  
 ```
-<!-- HTML -->
-<form id="test-form" onsubmit="return checkForm()">   返回true提交，flase不提交
-    <input type="text" name="test">
-    <button type="submit">Submit</button>
-</form>
 
-<script>
-function checkForm() {
-    var form = document.getElementById('test-form');
-    // 可以在此修改form的input...
-    // 继续下一步:
-    return true;   
-}
-</script>
-```
+
+
+### async await
+
+
 
 async 是“异步”的简写，而 await 可以认为是 async wait 的简写。
  async 用于申明一个 function 是异步的，而 await 用于等待一个异步方法执行完成。
@@ -249,47 +357,57 @@ await是等待，只能放到async函数里面，在后面放一个返回promise
 
 
 
-then正确执行   catch错误发生时专门捕获异常，整条调用链都可以被.catch捕获
 
-```
-job1.then(job2).then(job3).catch(handleError); 同步执行
 
-// 同时执行p1和p2，并在它们都完成后执行then:
-Promise.all([p1, p2]).then(function (results) {
-    console.log(results); // 获得一个Array: ['P1', 'P2']
+## 内置对象
+
+### Json
+
+1. JSON.stringify(xiaoming, ['name', 'skills'  属性名Array], '  '缩进);
+2. 或重写`toJSON()`的方法，直接返回JSON应该序列化的数据：
+3. JSON.parse(str)：反序列化
+
+```js
+var xiaoming = {
+    name: '小明',
+    age: 14,
+    gender: true,
+    height: 1.65,
+    grade: null,
+    'middle-school': '\"W3C\" Middle School',
+    skills: ['JavaScript', 'Java', 'Python', 'Lisp'],
+    toJSON: function () {
+        return { // 只输出name和age，并且改变了key：
+            'Name': this.name,
+            'Age': this.age
+        };
+    }
+};
+JSON.stringify(xiaoming, ['name', 'skills'属性名Array], '缩进');
+JSON.stringify(xiaoming); // '{"Name":"小明","Age":14}'
+
+var obj = JSON.parse('{"name":"小明","age":14}', function (key, value) {
+    if (key === 'name') {
+        return value + '同学';
+    }
+    return value;
 });
-
-Promise.race([p1, p2]).then(function (result) {
-    console.log(result); // 'P1'
-});  先返回结束
+console.log(JSON.stringify(obj)); // {name: '小明同学', age: 14}
 ```
 
-Promise中返回普通对象，默认Promise.resolve状态
+### Date
 
+JavaScript的Date对象月份值从0开始，牢记0=1月，1=2月，2=3月，……，11=12月。
 
-
-当Promise的回调函数返回非Promise对象的值时，then和catch都生成一个状态为fulfilled的Promise对象（reslove），并把该返回值传入Promise链的下一环节then。
-当Promise的回调函数返回值为Promise对象时，生成的Promise对象的状态由被返回的Promise对象决定，传入Promise链下一环节的值也由这个被返回的Promise决定。
-当Promise的回调函数中抛出错误时，then和catch都生成一个状态为rejected的Promise对象，并把抛出的错误对象传入Promise链的下一环节。
-
-
-
-- pending: 初始状态，不是成功或失败状态。
-- fulfilled: 意味着操作成功完成。
-- rejected: 意味着操作失败。
-
-只要这两种情况发生，状态就凝固了，不会再变了，会一直保持这个结果。就算改变已经发生了，你再对 Promise 对象添加回调函数，也会立即得到这个结果。但可以产生新的Promise
+```js
+var d = Date.parse('2015-06-24T19:49:22.875+08:00');//ISO标准格式创建
+var d = new Date(1435146562875);					//时间戳创建
+getTime()//获取时间戳
+```
 
 
 
 
 
-`then`和`catch`都会返回一个新的`Promise`。
-
-`3、``catch`不管被连接到哪里，都能捕获上层未捕捉过的错误。
 
 
-
-
-
-Promise代表承诺将来会执行即内部有异步操作，==本身不是异步而是同步，而是在内部触发执行异步操作==，调用reslove/reject会改变状态，then/catch时状态改变的回调

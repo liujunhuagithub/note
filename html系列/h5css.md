@@ -6,6 +6,25 @@ readonly：不可修改，可选中，提交后台
 
 disabled：不可修改，不可选中，不提交后台
 
+```html
+<form id="test-form" onsubmit="return checkForm()">   返回true提交，flase不提交
+    <input type="text" name="test">
+    <button type="submit">Submit</button>
+</form>
+
+
+<script>
+function checkForm() {
+    var form = document.getElementById('test-form');
+    // 可以在此修改form的input...
+    // 继续下一步:
+    return true;   
+}
+</script>
+```
+
+
+
 # css
 
 ## 选择器

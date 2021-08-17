@@ -420,7 +420,34 @@ var d = new Date(1435146562875);					//时间戳创建
 getTime()//获取时间戳
 ```
 
+### FileReader对象(异步读取，需要回调)
 
+- readAsText():读取**文本文件**返回String，默认UTF-8
+- readAsBinaryString():读取二进制文件返回流，用于上传文件给后端
+- readAsDataURL():解析文件为DaeaUrl
+  - 无返回值
+  - 参数Blob：可转换的文件(filedivnode.files[0])
+- abort():中断读取
+- 事件回调
+  - **onabort**:读取文件中断时触发
+  - **onerror**:读取错误时触发
+  - **onload**:文件==读取成功==完成时触发
+  - **onloadstart**:开始读取时触发
+  - **onloadend**:读取完成时触发，==无论成功还是失败==
+  - **onprogress**:读取文件过程中持续触发
+- **result**：读取结果自动保存在FileReader对象的result属性。**事件回调函数中操作result**
+
+### WebStorage存储键值对
+
+- localStorage：全局有效
+
+- sessionStorage：同一Tab有效，Tab关闭即清空
+
+- setItem(k,v)       getItem(k)       removeItem(k)   clear()
+
+  `target="_blank"`的A标签、``window.open`打开新窗口时，会把旧窗口sessionStorage**拷贝而非引用**。
+
+  ==同一Tab刷新，sessionStorage扔有效==
 
 # 模块化
 

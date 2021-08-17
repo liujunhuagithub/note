@@ -1,6 +1,20 @@
 # HTML5
 
-## 表单
+## 新增元素
+
+### 表单属性
+
+range：max min
+
+color
+
+time/date
+
+datetime很多不支持
+
+datetime-local：本地时间
+
+multiple：支持多个文件，多个邮箱逗号分隔
 
 readonly：不可修改，可选中，提交后台
 
@@ -12,7 +26,6 @@ disabled：不可修改，不可选中，不提交后台
     <button type="submit">Submit</button>
 </form>
 
-
 <script>
 function checkForm() {
     var form = document.getElementById('test-form');
@@ -23,7 +36,121 @@ function checkForm() {
 </script>
 ```
 
+### 进度条\<progress>
 
+```js
+<progress max="100" value="100"></progress>
+```
+
+### 度量器\<meter>
+
+```js
+<meter max="100" min="10" high="80"low="40" value="30"></meter> 不同值显示不同颜色
+```
+
+### 多媒体
+
+**\<audio>**   controls控制面板  autoplay   loop。
+
+ **\<video>**  controls控制面板  autoplay   loop width height  poster第一帧。只支持MPEG4，Ogg，WebM 
+
+**子标签\<source>备用源**  src    type：MIME格式
+
+
+```html
+<video width="640"   height="360">
+<source  src=" " type="video/ogg mp4; codecs='theora,vorbis"/>
+<source  src=" ”type="video/quicktime"/>
+</video>
+```
+## 新增事件
+
+### 通用事件
+
+**oninput**:监听当前指定**元素内容(增删改)**的改变立即触发  **onchange**内容改变，元素**失去焦点时**触发
+
+**onkeyup**:键盘**弹起**的时候触发:每一个键的弹起都会触发一次（<u>鼠标复制不触发</u>）
+
+**oninvalid**:当验证不通过时触发。自定义提示`this.setCustomValidity`
+
+```js
+document.getElementById("userName ").oninput=function(){}
+
+document.getElementById("userName ").onkeyup=function(){}
+
+document.getElementById("userPhone ").oninvalid=function(){
+this.setCustomValidity(“请输入合法的11位手机号");
+}
+```
+
+### OS状态事件(桌面端不灵敏)
+
+ononline：网络连通
+
+onoffline：网络断开
+
+navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options)  获取当前地理信息
+
+```js
+//测试是否支持
+if (navigator.geolocation){
+navigator.geolocation.getCurrentPosition(showPosition,showError,{});
+}
+else{
+x.innerHTML="Geolocation is not supported by this browser . ";
+}
+/*成功获取定位之后的回调*/
+function showPosition(position){
+纬度 position.coords.latitude 经度  position.coords.longitude; 
+精度position.coords.accuracy   海拔position.coords.altitude
+}
+function showError(error){}
+option：anableHighAccuracy:true/false:是否使用高精度 timeout  maximumAge实时更新间隔
+```
+
+### 拖拽
+
+ondrag应用于拖拽元素,整个拖拽过程都会调用--持续
+ondragstart应用于拖拽元素，当拖拽开始时调用
+ondnagleave应用于拖拽元素，当鼠标离开拖拽元素时调用
+ondragend应用于拖拽元素，当拖拽结束时调用
+
+## 应用缓存(web离线版本)
+
+创建 `cache manifest`文件(.appcache)，配置正确的MIME类型`text/cache-manifest`
+
+```yaml
+CACHE MANIFEST
+#上面一句代码必须是当前文档的第一句
+
+#需要缓存的文件清单列表
+CACHE:
+../images/l1.jpg
+* 代表所有文件
+
+#配置每一次都需要重新从服务器获取的文件清单列表
+NETWORK:
+../images/13.jpg
+
+#配置如果文件无法获取则使用指定的文件进行替代
+FALLBACK:
+../images/l4.jpgT ../images/banner_1.jpg
+  / 代表所有文件
+```
+
+\<html manifest='文件'>  指定`manifest`属性的html页面自动缓存。
+
+## DOM API
+
+### DOM选择器
+
+document.`querySelector`("一个元素");				document.`querySelectorAll`("多个元素")
+
+### 样式操作(实时渲染)
+
+`单选择器.calssList`：所有样式Array 	`calssList.add`()    `calssList.remove`()     `calssList.toggle`()切换
+
+​						`calssList.contain`()		`calssList.item`(0)获取样式
 
 # css
 
@@ -46,11 +173,23 @@ function checkForm() {
 
 boder：style width size             margin/padding: 上右下左   /  上下    左右 ==支持auto==
 
-background： url(img)                background-color
+background： url(img)                background-color          opacity透明度    boder-radio圆角
 
 ## 文本常见样式
 
 text-decoration:none 下划线样式
+
+web字体/图标
+
+```css
+@font-face {
+    font-family : 'webfontName/IconName';
+	src: url ('webfont.ttf') format('truetype' )
+}
+
+font-family :"webfontName" ！important   
+图标代码书写
+```
 
 
 
@@ -61,8 +200,6 @@ list-style-type:none    list前缀
 
 
 ## 超链接样式
-
-
 
 
 
@@ -111,8 +248,6 @@ list-style-type:none    list前缀
 3. 固定在浏览器窗口某个位置，不会随滚动条滚动
 
 ## 默认静态定位 static
-
-
 
 
 

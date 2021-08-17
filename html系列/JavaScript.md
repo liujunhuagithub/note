@@ -97,6 +97,7 @@ Task Queue 的异步任务分为   `微任务` 、`宏任务`；**微任务优�
 
 1. 反引号\`\`:用于模板字符串：**\`pre  ${varName}   suf\` **和   **多行字符串**
 2. str：作为字符的数组
+3. Symbol：类似str。Symbol(str)表示独一无二的值，解决命名冲突问题。不能与其他数据运算
 
 ### 运算符
 
@@ -157,8 +158,14 @@ length赋一个新的值会导致变化
    **Object.getOwnPropertyNames**  获取属性包括父类+本类，包括可枚举和不可枚举的属性
 
    hasOwnProperty()   是否自身拥有（包括父+子）的，而不是原型得到的
-
-
+   
+   Object.is 判断两个值是否完全相等
+   Object.assign(base,after) 对象的合并
+   
+   Object.keys() / values() 获取所有 keys / values
+   Object.entries()    [ key,value ]  数组
+   
+   Object.fromEntries( map)： 从map构造obj
 
 ## Map和Set
 
@@ -171,17 +178,17 @@ length赋一个新的值会导致变化
 
 ## 解构赋值
 
-==支持作为函数参数==，可用于array(  )  对象{  }
+==设置默认值和函数形参配合使用==，可用于array(  )  对象{  }
 
 ```
 let {name=默认值, 原属性名:新变量} = person;
 ```
 
-支持...array/map 打散
+支持...array / map / object 打散成序列，map打散成[ k,v]  , [k,v] ...
 
-对象property可直接引用变量
+对象复制：property可直接引用变量，key为变量名，value为变量值
 
-
+...args：生成参数数组
 
 ## 函数
 
@@ -261,11 +268,26 @@ arr.sort(function (x, y) {
 
 ## Class(简化原型链代码)
 
+**`static`**前缀：声明静态属性
+
+**`get/set`**前缀：getter/setter，常用于合法性校验
+
 ```js
 class Student {
+    static age=100；//static
+    name; //pubic
+	#weight  //私有属性
     constructor(name) {
         this.name = name;
+        this. #weight = 1000;
     }
+	get price(){
+		console.log(“价格属性被读取了");return 'iloveyou';
+	}
+
+	set price(newVa1){
+		console.log('价格属性被修改了');
+	}
 }
 
 class PrimaryStudent extends Student {
@@ -410,6 +432,27 @@ var obj = JSON.parse('{"name":"小明","age":14}', function (key, value) {
 console.log(JSON.stringify(obj)); // {name: '小明同学', age: 14}
 ```
 
+### Blob/File
+
+Blob不可变、原始数据的文件对象。它的数据可以按文本或二进制的格式进行读取，可读
+
+File 实现了Blob： \<input>标签返回`FileList`数组的组成
+
+### FormData
+
+生成键值对、键文件
+
+```js
+var formData = new FormData();
+var formData = new FormData(formElement); //从已有form-dom生成
+
+formData.append("username", "Groucho");
+formData.append("accountnum", 123456); //数字123456会被立即转换成字符串 "123456"
+
+// HTML 文件类型input，由用户选择
+formData.append("userfile", fileInputElement.files[0]);
+```
+
 ### Date
 
 JavaScript的Date对象月份值从0开始，牢记0=1月，1=2月，2=3月，……，11=12月。
@@ -455,16 +498,19 @@ getTime()//获取时间戳
 
 默认情况下，ES6模块中的**所有内容都是私有的**，并且以严格模式运行
 
-暴露变量：①`exports default `  任意变量来接收**     ②`exports`  **{ }的形式指定变量**按需导出，as别名
+暴露变量：①`exports default `  用**任意变量**来接收     ②`exports`  声明单个或**{ }的形式指定变量**按需导出，as别名
 
-导入变量： `import`
+导入变量：① `import` 		② 浏览器下\<script type="module ">
+
+​					③动态import(‘ ‘)返回Peomise
 
 <u>`export`可多次导出单个变量或封装为对象统一导出</u>
 
 ```js
-import { sum as addAll, mult as multiplyAll } from './lib.js';
+import { sum as addAll, mult as multiplyAll } from './lib.js';  //针对export
 
 import * as lib from './lib.js';
+import v from './lib.js';     								//只针对export default
 
 export var firstName = 'Michael';
 
@@ -474,6 +520,10 @@ export default {
 }
 export default info
 
+btn.onclick = function(f
+import('./hello.js').then(module => i
+module.hello();
+)}
 ```
 
 1. ES6导入import的变量是 ==引用==，而非拷贝，==会动态变化==，(a,b,c引用d的某变量v，v一旦变化，abc中所有值都会变化)

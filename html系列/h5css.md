@@ -331,7 +331,7 @@ wrap-reverse：换行，第一行在下方
 }
 ```
 
-默认值: flex-start 左/上   flex-end  右/下 
+默认值: flex-start 左/上   
 
 space-between：两端对齐，项目之间的间隔相等，即剩余空间等分成间隙。
 

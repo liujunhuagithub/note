@@ -179,6 +179,8 @@ let {name=默认值, 原属性名:新变量} = person;
 
 支持...array/map 打散
 
+对象property可直接引用变量
+
 
 
 ## 函数
@@ -420,36 +422,49 @@ getTime()//获取时间戳
 
 
 
+# 模块化
 
+## ES6
 
-Node准备的`exports`变量和`module.exports`变量实际上是同一个变量，并且初始化为空对象`{}`可以直接往里面加东西。exports会暴露出去
+默认情况下，ES6模块中的**所有内容都是私有的**，并且以严格模式运行
 
-exports不能直接替换成其他，必须用module.exports
+暴露变量：①`exports default `  任意变量来接收**     ②`exports`  **{ }的形式指定变量**按需导出，as别名
 
-如果要输出一个键值对象`{}`，可以利用`exports`这个已存在的空对象`{}`，并继续在上面添加新的键值；
+导入变量： `import`
 
-如果要输出一个函数或数组，必须直接对`module.exports`对象赋值
-
-
-
-`odule.exports = xxx`的方式来输出模块变量万能
-
-
-
-ES6（ES2015）中提出了单一的本机模块标准。
-
-默认情况下，ES6模块中的**所有内容都是私有的**，并且以严格模式运行（不需要'use strict'）。
-
-
-
-使用`export`公开变量，函数和类  可分别expost每个   或 统一封装对象后export
-
-
+<u>`export`可多次导出单个变量或封装为对象统一导出</u>
 
 ```js
 import { sum as addAll, mult as multiplyAll } from './lib.js';
 
 import * as lib from './lib.js';
 
+export var firstName = 'Michael';
+
+export default {
+    name: 'zs',
+    age: 20
+}
+export default info
+
 ```
+
+1. ES6导入import的变量是 ==引用==，而非拷贝，==会动态变化==
+2. import不论写在何处，最优先执行
+3. 编译时运行导入的模块(整个模块的语句都会执行)，
+4. module==仅执行一次==，不论import几次
+
+## CommonJS
+
+暴露变量 ①`exports`.varName=XX         ②`module.exports`={ }(实际上是同一个变量)
+
+导入变量： `require`
+
+1. `module.exports = xxx`的方式来输出模块变量万能
+2. CommonJs import的变量是 ==拷贝==，而非引用
+3. 运行时加载，仅一次
+
+
+
+
 

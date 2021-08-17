@@ -140,6 +140,57 @@ FALLBACK:
 
 \<html manifest='文件'>  指定`manifest`属性的html页面自动缓存。
 
+## Web Workers后台线程
+
+1. 作用：`web works`线程可以执行一个js文件，而不干扰用户界面。
+   - 双方沟通`postMessage( message)`==拷贝message而非引用==
+   -  ` onmessage`事件回调处理收到的message    消息被包含在`Message`事件的data属性中
+2. worker运行在另一个全局上下文中 ，**不能操作DOM节点**，**不能使用window**对象的默认方法和属性。
+3. 用于WebSocket等与视图耦合的业务
+
+```js
+//main.js  支持双向沟通
+var work = new worker( "work.js");
+work.onmessage= function(e){
+	let mess=e.data;
+}
+
+//work.js
+postMessage( message) ;
+```
+
+## Web Socket
+
+用于和服务器**双向**交流
+
+相关属性`readyState`：连接状态.0 - CONNECTING。1 -OPEN。2 - closing。3 - CLOSED
+
+<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210817153031205.png" alt="image-20210817153031205" style="zoom: 67%;" />
+
+<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210817153100549.png" alt="image-20210817153100549" style="zoom:67%;" />
+
+```js
+var wsServer = 'ws://localhost:8888/Demo'; //服务器地址
+var websocket = new WebSocket(wsServer); //创建WebSocket对象
+websocket.send("hello");//向服务器发送消息
+alert(websocket.readyState);//查看websocket当前状态
+websocket.onopen = function (evt) {
+//已经建立连接
+};
+websocket.onclose = function (evt) {
+//已经关闭连接
+};
+websocket.onmessage = function (evt) {
+//收到服务器消息，使用evt.data提取
+};
+websocket.onerror = function (evt) {
+//产生异常
+}; 
+websocket.close();//关闭
+```
+
+
+
 ## DOM API
 
 ### DOM选择器

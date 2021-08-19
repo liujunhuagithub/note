@@ -167,6 +167,12 @@ vm.selected.number // => 123
 
  `.trim`：去除首尾空白字符
 
+## 组件动态切换 `:is`
+
+`<components :is="varName">`    varValue时自定义组件名
+
+`<keep-alive>`**缓存**生成的组件，否则每次切换都生成新的组件实例
+
 ## 样式指令
 
 ### `:class = obj/array`动态地切换 class
@@ -242,20 +248,21 @@ Vue.createApp({ })//根组件属性
 
 ### 组件注册
 
-- 全局注册：在挂载DOM执行.component(组件名，组件内容)
-  1. 支持子组件内相互嵌套使用
+- 在挂载`mount`**之前**注册
+- **全局注册**：在挂载DOM执行.component(组件名，组件内容)
+  1. 支持*子组件内相互嵌套使用*
   2. 有性能损耗，不建议
-- 局部注册：`components`定义对象
+- **局部注册**：`components`定义对象
   1. `components` 对象中每个 property 名作为组件名。
+  2. ==**只能在父组件使用**==
 - 组件名规范：
-  - 定义：**大驼峰**
-  - 引用标签：包含**全部小写连字符分隔**，或大驼峰
+  - \<script>声明**大驼峰**
+  - \<template>使用**全小写连字符分隔**，或大驼峰
 
 ```js
 app.component('my-component-name', {
   /* ... */
 })
-
 
 import ComponentA from './ComponentA.vue'
 export default {
@@ -272,11 +279,13 @@ export default {
 ### 父-->子 props
 
 1. 子组件：声明 `props`，子组件内可作为peoperty在\<script>、\<template>中任意访问
+   - **`props`不可修改**，只能引用。配合watch/computed使用
+   - `contexi.attrs`获取style等属性
 2. 父组件：将子组件的props.XXX作为属性绑定、固定
    - 支持Number、Array、Object，boolean、解构传递所有属性
 
 ```html
-<blog-post v-bind="post"></blog-post>
+<blog-post v-bind="post">传递所有属性</blog-post>
 等价于
 <blog-post v-bind:id="post.id" v-bind:title="post.title"></blog-post>
 ```
@@ -308,9 +317,9 @@ props: {
     // 必填的字符串
     propC: {
       type: String,
-      required: true,
-       default: ‘100’,
-       validator: function(value) {
+      required: true,      //必须
+       default: ‘100’,      //默认值
+       validator: function(value) {    //校验函数
         return boolean
       }
     }}
@@ -343,9 +352,91 @@ emits: {
   }
 ```
 
+### 隔代传递
+
+针对**嵌套的父子组件**，而非兄弟组件
+
+- `provide(varName,value)`：向所有子组件传值
+- `inject(varName)`：从所有长辈获取对应值
+- 传递普通对象不会实时更新视图，建议**<u>传递`ref/reeactive`值保证实时更新</u>**
+
+```js
+ const geolocation = reactive({
+      longitude: 90,
+      latitude: 135
+    })
+    //祖先
+    provide('location', location)
+    provide('geolocation', geolocation)
+    
+    //后辈
+    const location = inject('location')
+    const geolocation = inject('geolocation')
+```
+
+
+
+### 消息订阅/发布
+
+
+
+
+
 ## 插槽slot
 
+### 单个插槽
 
+- **子组件提供\<slot>**占位符(可设默认值)，父组件向此占位**填充**内容(*html、组件*等)，便于扩展。
+- <u>父组件</u>中 自定义的子组件标签 有内容，默认忽略。若此<u>子组件有\<slot></u>标签会接受内容并渲染在子组件<u>插槽处DOM</u>
+- 填充内容的作用域**生命周期和子组件**一致
+
+```html
+<!--子-->
+<button class="btn-primary">
+  <slot>设置默认值</slot>
+</button>
+
+<!--父-->
+<todo-button>
+  Add todo
+</todo-button>
+```
+
+### 具名多插槽
+
+1. 子组件插槽多个\<slot>标签设置`name`属性，无name默认default
+2. 父组件在 子组件标签内分别**`<template v-slot:name>`**包裹填充内容(**`#name`**简写)
+
+```html
+<！--父-->
+<nav-bar>
+  <template #left>
+     <button>左边的按钮</button>
+  </template>
+</nav-bar>
+<！--子-->
+<template>
+    <div class="left">
+      <slot name="left"></slot>
+    </div>
+</template>
+```
+
+### 插槽slot传值
+
+默认父组件填充的内容 ：==**不能**在 父组件中 **访问 子组件变量**==
+
+父组件代码原样替换 slot标签后  子组件才编译，代码替换，而非渲染结果替换
+
+- 子组件将内部值绑定至`\<slot :varName ="propertyName">`标签某变量
+
+- 插槽名默认`default`，即**`v-slot = v-slot:default`**
+
+- 父组件使用**`<template v-slot:name=插槽所有变量的对象>`**引用此变量，支持解构赋值
+
+- 常用于设置**列表单个item**组件用于循环显示
+
+  <img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210819175523305.png" alt="image-20210819175523305" style="zoom: 50%;" />
 
 # Composition API
 
@@ -354,24 +445,67 @@ emits: {
 setup在==Created之前==执行(**beforeCreate-setup-Created**),不能访问  this data  computed  methods
 
 - **`props`只读**，是响应式对象(**toRefs解构**)不可修改；使用`watch`构造变化的逻辑
+
 - `context` 是普通 JavaScript 对象(es6解构)，暴露：attrs   slots   emit
+
 - `attrs` 和 `slots` 始终最新值，以 `attrs.x` 或 `slots.x` 的方式引用 property
+
 - 内部设置生命周期回调函数
 
+- 原则：==**尽量不操作原始对象**==
+
+- `<script setup>`:语法糖，简化setup()写法，无需返回值。自动暴露导入的components，data，methods
+
+  `defineProps`用来接收props，`defineEmit`声明触发的事件表，`useContext`用来获取组件context。
 
 ### 响应式变量
 
-Proxy劫持修改操作，在页面实时显示。分为**响应式对象reactive()**和**响应式变量ref()**
+Proxy劫持修改操作，在==页面实时显示==。分为**响应式对象reactive()**和**响应式变量ref()**
 
 #### reactive(obj)
 
-1. 声明响应式对象，**劫持**对象**内部变量**的**赋值**操作，用包装后的变量对内部属性名赋值。
-2. 针对**整个对象被包装**而非每个property包装
+1. 声明响应式对象，**劫持**对象**内部变量**的**赋值**操作用于**更新视图**
+2. reactive：原数据的**引用**，而非拷贝。对reactive的property赋值才能被劫持从而更新视图。*修改原数据会影响reactive对象的值，但**视图不会更新***
+3. 针对**整个对象被包装**而非每个property包装
 
 #### ref(baseVar)
 
 1. 声明响应式变量，ref(X)内部包装为reactive( ( value : X } )的响应式对象。
-2. \<script>中.value==修改，\<template>中直接引用
+2. `ref` ：原数据的**拷贝**，ref包装后完全和原值无关
+3. \<script>中.value==修改，\<template>中直接引用
+4. **引用DOM节点**：节点的ref属性   为绑定的 ref(null) 空变量名。可**获得组件节点**
+
+```js
+    <div ref="el变量名">div元素</div>
+setup() {
+    // 创建一个DOM引用，名称必须与元素的ref属性名相同
+    const el = ref(null)     
+
+    // 在挂载后才能通过 el 获取到目标元素
+    onMounted(() => {
+      el.value.innerHTML = '内容被修改'
+    })
+
+    // 把创建的引用 return 出去
+    return {el}//变量名
+  }
+}
+
+  <div v-for="(item, i) in list" :ref="el => { divs[i] = el }">
+ export default {
+    setup() {
+      const list = reactive([1, 2, 3])
+      const divs = ref([])
+
+      // 确保在每次变更之前重置引用
+      onBeforeUpdate(() => {
+        divs.value = []
+      })
+
+      return {
+        list,
+        divs,}}}
+```
 
 #### 响应式数组
 
@@ -380,9 +514,11 @@ Proxy劫持修改操作，在页面实时显示。分为**响应式对象reactiv
 
 #### `toRefs`响应式对象-变量转换
 
-将**reactive** 对象**每个属性** 转成 **ref变量**  ，生成对应的普通对象
+将**reactive/普通obj** **每个属性** 转成 **ref变量**，构造对应普通对象 { propertyName : Ref\<> }
 
-- reactive：使用`toRefs(reactiveObj)`***解构***，不能ES6解构(会消除 prop 的响应性)
+- ==reactive对象使用`toRefs(reactiveObj)`***解构***==，不能ES6解构(会消除 prop 的响应性)
+- 转换reactive：实时更新**数据和试图**；转换普通obj**仅更新数据**，不更新视图
+- 原数据的**引用**，新值改变不会更新视图？？？？？？？？？？？？
 - 常用于return { ...toRefs( reactiveObj ) }
 
 ```js
@@ -406,6 +542,10 @@ return {
 
 返回原始对象的**递归只读**代理，对内部*<u>所有层</u>*都是*<u>只读</u>*
 
+#### `toRaw (reactive/ref)`转成原始数据
+
+获取到的是原始数据，失去响应性，视图不会变化。转换`toRaw(ref)`变量仍需`.value`
+
 ### 监听
 
 1. `watchEffect( ( onInvalidate ? ) => )`:立即执行传入的函数，并响应式监听其依赖
@@ -413,7 +553,6 @@ return {
    - 只能**监听reactive.property**，不能监听reactive整体对象
    - 不能访问新旧值
    - 不需要传递参数，会自动管制代码中的变量
-   - 
 2. `停止监听`：执行watchEffect/watch`返回的函数`
 3. `watch(ref / reactive , ( newValue,oldValue onInvalidate ? ) => { },{options} )`
    - 默认`immediate = false`：**懒加载**，监听的值发生变化的时候才会执行，即首次加载页面不立即执行
@@ -461,23 +600,17 @@ const plusOne = computed({
 
 ### 生命周期
 
-
-
-
-
 | 生命周期      | hook回调函数    | 作用                                                         |
 | ------------- | --------------- | ------------------------------------------------------------ |
 | beforeCreate  | setup()         | 实例生成前，vue实例并未完全创建出来                          |
 | created       | setup()         | 实例创建完成                                                 |
 | beforeMount   | onBeforeMount   | 组件渲染到对应DOM之前                                        |
-| mounted       | onMounted       | 组件渲染到对应DOM之后，显示组件中变量。常用于**请求网络数据**(因为DOM已渲染可被操作) |
-| beforeUpdate  | onBeforeUpdate  | 数据发生变化后，**重新渲染之前**                             |
-| updated       | onUpdated       | 数据发生变化后， **重新渲染之后**。不常用                    |
-| beforeDestroy | onBeforeUnmount | vue实例销毁前                                                |
+| mounted       | onMounted       | 组件渲染到对应DOM之后，显示组件中变量。常用于**请求网络数据**、定时器(因为DOM已渲染可被操作) |
+| beforeUpdate  | onBeforeUpdate  | **数据变化后**，**重新渲染之前**                             |
+| updated       | onUpdated       | 数据变化后， **重新渲染之后**。不常用                        |
+| beforeDestroy | onBeforeUnmount | vue实例(DOM)销毁前                                           |
 | destroyed     | onUnmounted     | vue实例失效，且dom完全销毁。子实例(组件)、watch等全部销毁    |
-| errorCaptured | onErrorCaptured |                                                              |
-|               |                 |                                                              |
-|               |                 |                                                              |
+| errorCaptured | onErrorCaptured | 子组件报错处理，(err,组件实例，msg )=>return false阻止传播   |
 
 
 

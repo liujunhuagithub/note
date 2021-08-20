@@ -550,17 +550,17 @@ return {
 
 1. `watchEffect( ( onInvalidate ? ) => )`:立即执行传入的函数，并响应式监听其依赖
    - **积极加载**：onMounted会加载watchEffect
-   - 只能**监听reactive.property**，不能监听reactive整体对象
+   - 只能**监听reactive.property**，和`ref.value`
    - 不能访问新旧值
    - 不需要传递参数，会自动管制代码中的变量
 2. `停止监听`：执行watchEffect/watch`返回的函数`
 3. `watch(ref / reactive , ( newValue,oldValue onInvalidate ? ) => { },{options} )`
    - 默认`immediate = false`：**懒加载**，监听的值发生变化的时候才会执行，即首次加载页面不立即执行
    - `deep`深度监听：默认false，
-   - 针对 `ref` 和 `reactive对象整体`。==**不允许监听reactive的property，使用getter函数转换**==
-   - 访问**新旧值**newValue/oldValue，数组同时**侦听多个源**
+   - 仅针对 `ref` ，==**getter函数监听reactive的property**==
+   - 访问**真正的新旧值**newValue/oldValue，而非ref。支持数组同时**侦听多个源**
 4. `onInvalidate( ( ) => )` ：清除副作用，通常是未完成的异步操作，避免回调频繁而异步操作延时跟不上
-   -  ①**重新执行watchEffect/watch**时
+   -  ①**每次重新执行watchEffect/watch**时，都会调用上次的onInvalidate回调
    - ②停止监听(**unMounted**或手动**停止监听**)时
 
 ```js

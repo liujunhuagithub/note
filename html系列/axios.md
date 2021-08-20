@@ -9,9 +9,14 @@
 
 #### 默认值创建
 
-axios.defaults.XXX=
+```js
+axios.defaults.baseURL = 
+axios.defaults.headers['自定义头'] = '值'
+axios.defaults.headers['token'] = localStorage.getItem('token') || ''
+axios.defaults.headers.post['Content-Type'] = 'application/json'
+```
 
-#### 新实例
+新实例
 
 ```js
 	const service = axios.create({
@@ -107,7 +112,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
     function (response) {
         // 对响应数据做点什么
-        return response;
+        return response.data;
     },
     function (error) {
         // 对响应错误做点什么
@@ -153,6 +158,50 @@ axios.post('/foo', params);
 
 params：url-query，一般用于get请求。
 data：请求体（body）中，自动json序列化。 一般用于post请求，get/delete无效
+
+### 取消请求
+
+不同请求定义**相同的取消请求的方法名**，**批量取消**多个请求
+
+```js
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
+
+axios.get('/user/12345', {
+  cancelToken: source.token
+}).catch(function (thrown) {
+  if (axios.isCancel(thrown)) {
+    console.log('Request canceled', thrown.message);
+  } else {
+    // 处理错误
+  }
+});
+
+axios.post('/user/12345', {
+  name: 'new name'
+}, {
+  cancelToken: source.token
+})
+// 取消请求（message 参数是可选的）
+source.cancel('Operation canceled by the user.');
+
+
+//第二种方法
+const CancelToken = axios.CancelToken;
+let cancel;
+
+axios.get('/user/12345', {
+  cancelToken: new CancelToken(function executor(c) {
+    // executor 函数接收一个 cancel 函数作为参数
+    cancel = c;
+  })
+});
+
+// 取消请求
+cancel();
+```
+
+
 
 # 响应格式
 

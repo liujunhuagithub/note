@@ -10,6 +10,8 @@
 
 `{{ }}`双大括号：支持**简单表达式**(三元运行，基本运算)，不支持语句
 
+$event \$emit \$route \$router 在\<template>中引用
+
 `v-once `:	仅显示一次初始内容。数据改变时，插值处的内容不更新
 
 `v-html`：	输出真正的 HTML
@@ -272,8 +274,6 @@ export default {
 }
 ```
 
-
-
 ## 组件交互
 
 ### 父-->子 props
@@ -374,14 +374,6 @@ emits: {
     const geolocation = inject('geolocation')
 ```
 
-
-
-### 消息订阅/发布
-
-
-
-
-
 ## 插槽slot
 
 ### 单个插槽
@@ -445,18 +437,37 @@ emits: {
 setup在==Created之前==执行(**beforeCreate-setup-Created**),不能访问  this data  computed  methods
 
 - **`props`只读**，是响应式对象(**toRefs解构**)不可修改；使用`watch`构造变化的逻辑
-
 - `context` 是普通 JavaScript 对象(es6解构)，暴露：attrs   slots   emit
-
 - `attrs` 和 `slots` 始终最新值，以 `attrs.x` 或 `slots.x` 的方式引用 property
-
 - 内部设置生命周期回调函数
-
 - 原则：==**尽量不操作原始对象**==
-
 - `<script setup>`:语法糖，简化setup()写法，无需返回值。自动暴露导入的components，data，methods
+  - `defineProps`用来接收props，`defineEmit`声明触发的事件表，`useContext`用来获取组件context。
+  - `<script setup>`变量只针对本组件内部，子组件需要`defineExpose`**手动暴露给父组件**内部的变量供父组件标签引用子组件实例(非props机制)
+  - `setup( )`默认暴露子组件所有property给组件外，父组件可任意引用。
+  - 直接使用`await`即可，无需async setup()
 
-  `defineProps`用来接收props，`defineEmit`声明触发的事件表，`useContext`用来获取组件context。
+```js
+//子组件
+<script setup>
+import {  ref ,defineExpose} from 'vue'
+const msg = ref('HelloWorld') // 响应式数据：msg
+defineExpose({msg})
+</script>
+
+//父组件
+<HelloWorld ref="sonRef" />
+<script setup>
+    const sonRef = ref(null) // 通过 ref 绑定子组件
+    function getSonComponent () { // 通过 ref 获取子组件
+      console.log(sonRef.value)
+      console.log(sonRef.value.msg)
+      sonRef.value.msg+='gnfdk'
+    }
+    let x=reactive({e:0})  //父组件mounted才能使用子组件实例，因为在此之前子组件未渲染，没有实例
+    onMounted(()=>x.e=computed(()=>sonRef.value.msg))
+</script>
+```
 
 ### 响应式变量
 
@@ -473,7 +484,8 @@ Proxy劫持修改操作，在==页面实时显示==。分为**响应式对象rea
 1. 声明响应式变量，ref(X)内部包装为reactive( ( value : X } )的响应式对象。
 2. `ref` ：原数据的**拷贝**，ref包装后完全和原值无关
 3. \<script>中.value==修改，\<template>中直接引用
-4. **引用DOM节点**：节点的ref属性   为绑定的 ref(null) 空变量名。可**获得组件节点**
+4. **引用DOM节点**：节点的ref属性   为绑定的 ref(null) 空变量名。可**获得该组件实例**，父**`mounted`**后才能**获取子实例**引用，在此之前子组件未渲染，没有实例
+5. setup( )默认暴露子组件所有property，父组件可任意引用。`<script setup>`需要`defineExpose`**手动暴露给父组件**
 
 ```js
     <div ref="el变量名">div元素</div>
@@ -544,7 +556,7 @@ return {
 
 #### `toRaw (reactive/ref)`转成原始数据
 
-获取到的是原始数据，失去响应性，视图不会变化。转换`toRaw(ref)`变量仍需`.value`
+获取到的是**原始数据**，失去响应性，视图不会变化。转换`toRaw(ref)`变量仍需`.value`
 
 ### 监听
 
@@ -612,12 +624,203 @@ const plusOne = computed({
 | destroyed     | onUnmounted     | vue实例失效，且dom完全销毁。子实例(组件)、watch等全部销毁    |
 | errorCaptured | onErrorCaptured | 子组件报错处理，(err,组件实例，msg )=>return false阻止传播   |
 
+#### 父子组件声明周期(类似栈)
 
+- 创建
+
+  ```
+  Parent beforeCreate -> Parent Created -> Parent BeforeMount -> 
+  	Child BeforeCreate -> Child Created -> Child BeforeMount -> Child Mounted ->
+  Parent Mounted
+  ```
+
+- 更新
+
+  ```
+  Parent BeforeUpdate -> Child BeforeUpdate -> Child Updated -> Parent Updated
+  ```
+
+- 销毁
+
+  ```
+  Parent BeforeDestroy -> Child BeforeDestroy -> Child Destroyed -> Parent Destroyed
+  ```
 
 # Router
 
-注册全局守卫beforeEach，获取vuex的store.state的值时，要写在main.js中。因为写在router/index.js时，store未挂载
+## Router创建
 
-#Vuex
+- **`<router-link :to replace? active-class?>`**：渲染出超链接\<a> `to`为链接地址href，可响应式变化。点击才能跳转
+- **`<router-view name？>`**：对应路由渲染的DOM位置。嵌套路由要在对应大目标组件内设`<router-view>`
+- `router`控制路由跳转，设置守卫，编程式控制
+- 使用hsitory模式，后端需配置url匹配失败返回至 index.html
 
-setup()获取store的值，要使用计算属性computed(()=>useStore().state.***)
+```js
+//1 创建src/router/index.js文件配置详细routes
+//2 导入相关创建函数
+import {createRouter,createWebHistory } from 'vue-router'
+//3 配置mode和routes映射，并导出
+export default createRouter({
+    history :createWebHistory(),  //createwebHashHistory
+    routes: [{       //多个route对象组成数组
+        path :'/',
+        alias:['/index','/home'],
+        component: Home
+    }]
+})
+//4 main.js配置use( router )
+import router from '/src/router/index'
+createApp(App).use(router).mount('#app')
+```
+
+- 默认样式类名：`router-link-active`
+
+
+## Route配置
+
+router配置选项routes由多个route对象组成数组，每个route选项如下：
+
+路由懒加载：使用**`()=>import('...')`**导入组件
+
+| 选项                | 意义                                                         | 选项     | 意义                      |
+| ------------------- | ------------------------------------------------------------ | -------- | ------------------------- |
+| **path**            | 匹配路径，支持正则表达式                                     | name     | 命名路由避免程序和url耦合 |
+| **component**单组件 | 跳转的目的组件                                               | alias    | 路径path别名，支持数组    |
+| **components**对象  | 对象peoperty名与\<router-view **name**对应                   | redirect | 重定向某指定route         |
+| **children**        | 子路由嵌套，**子path/alias不能根路径开头**                   | meta     | 自定义的info              |
+| props               | 是否将route.params作为**子组件props**，多个明明是图需要一一指定 |          |                           |
+
+```js
+const routes = [
+{
+    path: '/users/:id',
+    component: UsersByIdLayout,
+    children: [
+        //注意不能出现根路径/**
+      { path: 'profile', component: UserDetails, alias: ['/:id', ''] },
+    ],
+  },
+  {
+    path: '/user/:id',
+    components: { default: User, sidebar: Sidebar },
+    props: { default: true, sidebar: false }
+  }
+]
+```
+
+### path配置
+
+1. 常用于组合**目的地址**，支持相对路径
+2. **`/`**：始终是根路径，**`children`**子路由、**`alias`**别名的路径不能存在`/`
+3. 支持空路径 `‘  ’` ，常用于children路由不匹配任何子路由
+
+#### params路径变量(**`/: pathVarName (正则)`**)
+
+各个路径变量作为route.params的对象属性，支持正则匹配。即`route.params:{p1 : v1 ,p2 : v2 }`
+
+```js
+/users/:username/posts/:postId  ------------>{ username: 'eduardo', postId: '123' }
+'/user-:afterUser(.*)'---------->/user-XXX ------->route.params.afterUser
+```
+
+#### query自定义?参数
+
+传递路由目的对象时与path配日使用
+
+### 命名视图
+
+同一route跳转渲染多个\<router-view >，components配置的组件和\<router-view >对应
+
+- route配置的**`components对象`**属性名 == \<router-view  **name**>视图名
+- 单个和多个共存渲染至default视图，匹配不到name忽略
+- **未指定**时名称为`default`
+
+```js
+ routes: [
+    {
+      path: '/',
+      components: {
+        default: Home,        //<router-view>未配置name
+        LeftSidebar,		//<router-view name="LeftSidebar">
+        RightSidebar,		//<router-view name="RightSidebar">
+      },
+    },
+     {
+  path: '/settings',
+  // You could also have named views at the top
+  component: UserSettings,
+  children: [{
+    path: 'emails',
+    component: UserEmailsSubscriptions  //单个和多个共存渲染至default视图，匹配不到name忽略
+  }, {
+    path: 'profile',
+    components: {
+      default: UserProfile,
+      helper: UserProfilePreview
+    }
+  }]
+}
+  ]
+```
+
+
+
+## 生命周期Hook
+
+跳转同一route会重用组件实例
+
+## 编程式路由
+
+### 获取相关对象
+
+1. useRouter：获取当前router   用于跳转
+2. useRouter ：获取当前route，是 **<u>响应式对象</u>**，可获取name path params query
+3. \<template>中支持 $router \$route
+
+
+### 路由跳转控制
+
+`router`控制，使用编程方式，避免用户点击触发。
+
+- **`push`**:支持url简单跳转、==**name+params**==、==**path+query**==复杂跳转
+  1. path和params不能同时配置
+  2. 相当于\<router-link>的**`to`**
+- **`replace`**：不会新增history记录
+- **`go(n)`**：前进/后退步数，forward/back
+- 3
+- 3
+- 3
+- 3
+- 3
+
+
+
+```js
+router.push(`/user/${username}`) 
+router.push({ path: `/user/${username}`,query:{q1:v1} }) 
+router.push({ name: 'user', params: { username } }) 
+
+router.go(1) = router.forward()
+
+router.go(-1) = router.back()
+```
+
+### 路由守卫
+
+#### 全局守卫
+
+`beforeEach`   返回false取消导航        无返回值或true继续导航   next只能执行一次  if next else  next
+
+Beforeresolve 是获取数据或者在用户无法进入页面时执行任何其他操作的理想位置。
+
+afterEach
+
+#### 局部route守卫  在route配置
+
+beforeEnter
+
+#### 组件route守卫
+
+- `beforeRouteEnter`
+- `beforeRouteUpdate`
+- `beforeRouteLeave`

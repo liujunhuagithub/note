@@ -447,6 +447,8 @@ setup在==Created之前==执行(**beforeCreate-setup-Created**),不能访问  th
   - `setup( )`默认暴露子组件所有property给组件外，父组件可任意引用。
   - 直接使用`await`即可，无需async setup()
 
+![image-20210821203650987](image-20210821203650987.png)
+
 ```js
 //子组件
 <script setup>
@@ -651,7 +653,7 @@ const plusOne = computed({
 ## Router创建
 
 - **`<router-link :to replace? active-class?>`**：渲染出超链接\<a> `to`为链接地址href，可响应式变化。点击才能跳转
-- **`<router-view name？>`**：对应路由渲染的DOM位置。嵌套路由要在对应大目标组件内设`<router-view>`
+- **`<router-view name？:key?>`**：对应路由渲染的DOM位置。嵌套路由要在对应大目标组件内设`<router-view>`
 - `router`控制路由跳转，设置守卫，编程式控制
 - 使用hsitory模式，后端需配置url匹配失败返回至 index.html
 
@@ -674,7 +676,19 @@ createApp(App).use(router).mount('#app')
 ```
 
 - 默认样式类名：`router-link-active`
+- 支持缓存`<keep-alive include/exclude/max>`，缓存的组件不会`unmounted`
+  - `include`：指定缓存组件(str/array)
+  - `exclude`：不会缓存的组件(str/array)
+  - `max`：最大缓存数
 
+```js
+<router-view v-slot="{Component }">
+<keep-alive>
+<component :is="Component"/>
+</keep-alive>
+</ router-view>
+
+```
 
 ## Route配置
 
@@ -713,6 +727,7 @@ const routes = [
 1. 常用于组合**目的地址**，支持相对路径
 2. **`/`**：始终是根路径，**`children`**子路由、**`alias`**别名的路径不能存在`/`
 3. 支持空路径 `‘  ’` ，常用于children路由不匹配任何子路由
+4. 类似java**最精确最长匹配**
 
 #### params路径变量(**`/: pathVarName (正则)`**)
 
@@ -763,12 +778,6 @@ const routes = [
   ]
 ```
 
-
-
-## 生命周期Hook
-
-跳转同一route会重用组件实例
-
 ## 编程式路由
 
 ### 获取相关对象
@@ -787,13 +796,6 @@ const routes = [
   2. 相当于\<router-link>的**`to`**
 - **`replace`**：不会新增history记录
 - **`go(n)`**：前进/后退步数，forward/back
-- 3
-- 3
-- 3
-- 3
-- 3
-
-
 
 ```js
 router.push(`/user/${username}`) 
@@ -809,18 +811,37 @@ router.go(-1) = router.back()
 
 #### 全局守卫
 
-`beforeEach`   返回false取消导航        无返回值或true继续导航   next只能执行一次  if next else  next
+1. | 全局守卫                          | 意义                                    |
+   | --------------------------------- | --------------------------------------- |
+   | `beforeEach（to，from， next ?）` | 每个route前触发，常用于登录验证         |
+   | beforeResolve（to，from， next）  |                                         |
+   | afterEach（to，from）             | 每个route离开组件后触发，常用于记录信息 |
 
-Beforeresolve 是获取数据或者在用户无法进入页面时执行任何其他操作的理想位置。
-
-afterEach
+- `beforeEach` ：
+  - 无next参数：返回false取消导航        无返回值或true继续导航  
+  - 存在next参数：next( )通过；next(false): 中断当前导航返回from   next( ' '/ { } )：跳转新导航 next(erroe)：传递给router.onError()回调函数
+  - next(..)只能执行一次
+- 支持回调函数**async**、await
+- **to和from**都是路由对象Route
 
 #### 局部route守卫  在route配置
 
-beforeEnter
+| 单个route守卫                  | 意义                  |
+| ------------------------------ | --------------------- |
+| beforeEnter: (to, from) => { } | 在**每个route**中配置 |
 
 #### 组件route守卫
 
-- `beforeRouteEnter`
-- `beforeRouteUpdate`
-- `beforeRouteLeave`
+| 组件内守卫                           | 意义                              |
+| ------------------------------------ | --------------------------------- |
+| `beforeRouteEnter` (to, from, next)  | 顺利跳转至本组件，created之前触发 |
+| `beforeRouteUpdate` (to, from, next) | 组件**复用**时触发，可获取实例    |
+| `beforeRouteLeave(to, from, next)`   | 组件离开时被调用，常用于退出提示  |
+
+beforeRouteLeave (离开组件的) beforeEach(全局路由)  beforeEnter   beforeRouteEnter(跳转到的路由组件内的) afterEach(全局路由) 
+
+## 生命周期
+
+to和from指向同一route，该组件会复用，不会unmounted。不会调用组件的生命周期Hook，beforeRouteUpdate 手动变更
+
+`<keep-alive>`缓存的修改使用onActivated、onDeactivated

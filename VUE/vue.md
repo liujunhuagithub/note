@@ -486,8 +486,8 @@ Proxy劫持修改操作，在==页面实时显示==。分为**响应式对象rea
 1. 声明响应式变量，ref(X)内部包装为reactive( ( value : X } )的响应式对象。
 2. `ref` ：原数据的**拷贝**，ref包装后完全和原值无关
 3. \<script>中.value==修改，\<template>中直接引用
-4. **引用DOM节点**：节点的ref属性   为绑定的 ref(null) 空变量名。可**获得该组件实例**，父**`mounted`**后才能**获取子实例**引用，在此之前子组件未渲染，没有实例
-5. setup( )默认暴露子组件所有property，父组件可任意引用。`<script setup>`需要`defineExpose`**手动暴露给父组件**
+4. **引用DOM节点**：节点的ref属性   为绑定的 ref(null) 空变量名。可**获得该组件实例**，父**`mounted`**后才能**获取子实例**引用，在此之前子组件未渲染，没有实例。通常事件回调操作ref.value.XXX
+5. setup( )默认暴露子组件所有property，父组件可任意引用。`<script setup>`需要`defineExpose`**手动暴露给父组件**。封装子组件给别人要特别注意
 
 ```js
     <div ref="el变量名">div元素</div>
@@ -702,7 +702,7 @@ router配置选项routes由多个route对象组成数组，每个route选项如�
 | **component**单组件 | 跳转的目的组件                                               | alias    | 路径path别名，支持数组    |
 | **components**对象  | 对象peoperty名与\<router-view **name**对应                   | redirect | 重定向某指定route         |
 | **children**        | 子路由嵌套，**子path/alias不能根路径开头**                   | meta     | 自定义的info              |
-| props               | 是否将route.params作为**子组件props**，多个明明是图需要一一指定 |          |                           |
+| props               | 是否将route.params作为**子组件props**，多个命名视图需要一一指定 |          |                           |
 
 ```js
 const routes = [
@@ -740,7 +740,7 @@ const routes = [
 
 #### query自定义?参数
 
-传递路由目的对象时与path配日使用
+传递路由目的对象时与path配合使用，可写在url上自动识别
 
 ### 命名视图
 
@@ -811,18 +811,16 @@ router.go(-1) = router.back()
 
 #### 全局守卫
 
-1. | 全局守卫                          | 意义                                    |
-   | --------------------------------- | --------------------------------------- |
-   | `beforeEach（to，from， next ?）` | 每个route前触发，常用于登录验证         |
-   | beforeResolve（to，from， next）  |                                         |
-   | afterEach（to，from）             | 每个route离开组件后触发，常用于记录信息 |
+1. | 全局守卫                         | 意义                                    |
+   | -------------------------------- | --------------------------------------- |
+   | `beforeEach（to，from）`         | 每个route前触发，常用于登录验证         |
+   | beforeResolve（to，from， next） |                                         |
+   | afterEach（to，from）            | 每个route离开组件后触发，常用于记录信息 |
 
-- `beforeEach` ：
-  - 无next参数：返回false取消导航        无返回值或true继续导航  
-  - 存在next参数：next( )通过；next(false): 中断当前导航返回from   next( ' '/ { } )：跳转新导航 next(erroe)：传递给router.onError()回调函数
-  - next(..)只能执行一次
+- `beforeEach` ：返回false取消导航        无返回值或true继续导航  
 - 支持回调函数**async**、await
 - **to和from**都是路由对象Route
+- 重复点击同一route，不会触发beforeEach，但会afterEach
 
 #### 局部route守卫  在route配置
 
@@ -832,16 +830,21 @@ router.go(-1) = router.back()
 
 #### 组件route守卫
 
-| 组件内守卫                           | 意义                              |
-| ------------------------------------ | --------------------------------- |
-| `beforeRouteEnter` (to, from, next)  | 顺利跳转至本组件，created之前触发 |
-| `beforeRouteUpdate` (to, from, next) | 组件**复用**时触发，可获取实例    |
-| `beforeRouteLeave(to, from, next)`   | 组件离开时被调用，常用于退出提示  |
+| 组件内守卫                           | 意义                             |
+| ------------------------------------ | -------------------------------- |
+| `beforeRouteUpdate` (to, from, next) | 组件**复用**时触发，可获取实例   |
+| `beforeRouteLeave(to, from, next)`   | 组件离开时被调用，常用于退出提示 |
 
 beforeRouteLeave (离开组件的) beforeEach(全局路由)  beforeEnter   beforeRouteEnter(跳转到的路由组件内的) afterEach(全局路由) 
 
 ## 生命周期
 
-to和from指向同一route，该组件会复用，不会unmounted。不会调用组件的生命周期Hook，beforeRouteUpdate 手动变更
+- **组件复用**：to和from指向**同一route**，该组件会复用，不会unmounted。
+  - params不是响应式对象，需要主动更新涉及params的逻辑
+    - **beforeRouteUpdate** 回调函数**手动**变更params的逻辑
+    - \<route-view>设置 **`：key`**改变决定复用的key，可设变化随机数禁用复用
+  - 复用同一组件**不会调用beforeRouteLeave**
+  
+- 重复点击同一route，不会触发beforeEach，但会afterEach
+- `<keep-alive>`缓存的修改使用onActivated、onDeactivated
 
-`<keep-alive>`缓存的修改使用onActivated、onDeactivated

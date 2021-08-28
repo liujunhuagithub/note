@@ -1,16 +1,14 @@
-特色
+# 特色
 
-Kotlin的优势是既有Java的完整生态(Kotlin完全无缝使用各类Java API框架库又有现代语言的高级特性（语法糖）。
-
-kotlin编译器十分强大，检查机制十分严格。可将源码译成jvm字节码等各种平台形式
-
-Kotlin具备类型推断、多范式支持、可空性表达、扩展函数、模式匹配等诸多下一代编程语言特性。
-
-Kotlin的编译器kompiler可以被独立出来并嵌入到 Maven、Ant或Gradle工具链中。这使得在IDE 中开发的代码能够利用已有的机制来构建，可以在新环境中自由使用。
+Kotlin优势是既有Java的完整生态(Kotlin完全无缝使用各类Java API框架库又有现代语言的高级特性（语法糖）
 
 与所有基于Java的框架完全兼容，支持函数式编程。有功能丰富的集合类Stream API，扩展了简单实用的文件IO、正则匹配、线程等工具类;
 
-方便地创建DSL
+Kotlin具备类型推断、多范式支持、可空性表达、扩展函数、模式匹配等诸多下一代编程语言特性。
+
+kotlin编译器十分强大，检查机制十分严格。可将源码译成jvm字节码等各种平台形式
+
+Kotlin的编译器kompiler可以被独立出来并嵌入到 Maven、Ant或Gradle工具链中。这使得在IDE 中开发的代码能够利用已有的机制来构建，可以在新环境中自由使用。
 
 Kotlin可直接扩展类的函数与属性
 
@@ -21,8 +19,6 @@ Kotlin可直接扩展类的函数与属性
 支持直接编译成可以在Windows、Linux和macOS平台上运行的native原生二进制代码。
 
 kotlin不能和java语法混合，groovy可以
-
-默认最后一行结果为返回值
 
 ![image-20210828101151335](image-20210828101151335.png)
 
@@ -413,11 +409,22 @@ fun Request.getBody() =
 
 ## 标签label
 
-常用于**跳出lambda函数**，继续循环下一次迭代。
+常用于**跳出lambda函数的当前循环**，继续循环下一次迭代。
 
-显式：`label Name@`：标签名后跟`@`字符.	隐式：与接受lambda函数的方法同名
+显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受lambda函数的方法同名
 
 `return@labelName`
+
+```kotlin
+fun foo(){
+ints.forEach lit@{
+    return@lit //return@forEach
+	}
+}
+
+```
+
+
 
 # 函数
 
@@ -564,6 +571,7 @@ a = b.also { b = a }
   - 位于**<u>类体内</u>**
   - ==**必须调用主构造函数或其他次构造函数**==：`constructor (形参:Type...):this（参数列表)`
   - 声明的<u>新次构造函数</u>调用<u>已有的构造函数`:this(参数...)`</u>：
+    - **没有主**构造函数也会**隐式调用**
     - 编译器自动**按参数书写顺序赋值、调用已有构造函数**
     - 参数**顺序**必须**一致**。
     - **新的参数个数 >  已有的参数个数**
@@ -640,7 +648,7 @@ classPlayer5(_name : string)i
 - **类本身**、类的成员**函数**默认`final`禁止继承/重写，`open`开放继承/重写。支持**类单继承，接口多实现**
 - `open/override`：子类中重写的==**属性、方法**==需要override修饰符。父方法默认final，需要加`open`修饰符
   - 可在类头声明时覆盖变量
-- `super`：子类中访问父类成员
+- `super`：子类中访问父类成员。方法冲突使用：`super<某父类>`
 
 - Any：kotlin中所有类的父类，没有父类默认Any是父类。提供
   - 默认实现：`equals`：针对引用 ===        `hashCode`：对象地址 `toString`：类名@hashCode
@@ -738,7 +746,7 @@ object Singleton {
 
 #### 单例对象表达式(同java匿名内部类)
 
-生成**只调用一次**的**子类唯一实例**，同java 匿名内部类
+生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类
 
 ```kotlin
 open class Player {
@@ -746,6 +754,9 @@ open class Player {
 }
 fun main(){
 	val p =object : Player() {
+		override fun load() = "anonymous class load. . ."
+}
+    val n =object {//不必有父类
 		override fun load() = "anonymous class load. . ."
 }
 println(p. load())

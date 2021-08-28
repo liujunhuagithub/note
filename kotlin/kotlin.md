@@ -1,12 +1,20 @@
-# 特色
+特色
+
+Kotlin的优势是既有Java的完整生态(Kotlin完全无缝使用各类Java API框架库又有现代语言的高级特性（语法糖）。
 
 kotlin编译器十分强大，检查机制十分严格。可将源码译成jvm字节码等各种平台形式
 
-与所有基于Java的框架完全兼容，支持函数式编程
+Kotlin具备类型推断、多范式支持、可空性表达、扩展函数、模式匹配等诸多下一代编程语言特性。
 
-**静态语言**但支持推断变量类型，**严格限制null**
+Kotlin的编译器kompiler可以被独立出来并嵌入到 Maven、Ant或Gradle工具链中。这使得在IDE 中开发的代码能够利用已有的机制来构建，可以在新环境中自由使用。
 
-脚本语言和编译语言的结合
+与所有基于Java的框架完全兼容，支持函数式编程。有功能丰富的集合类Stream API，扩展了简单实用的文件IO、正则匹配、线程等工具类;
+
+方便地创建DSL
+
+Kotlin可直接扩展类的函数与属性
+
+**静态语言**但支持推断变量类型，==**一切皆引用**==，**严格限制null**
 
 垮平台的通用型语言，可开发各种原生应用，如Android、macOS、Windows、Javascript应用
 
@@ -16,36 +24,62 @@ kotlin不能和java语法混合，groovy可以
 
 默认最后一行结果为返回值
 
+![image-20210828101151335](image-20210828101151335.png)
+
 <img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210825105631637.png" alt="image-20210825105631637" style="zoom:50%;" />
+
+
+
+![image-20210828101628554](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101628554.png)
+
+
+
+![image-20210828101657549](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101657549.png)
+
+![image-20210828101709209](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101709209.png)
+
+![image-20210828101736292](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101736292.png)
+
+![image-20210828101751761](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101751761.png)
 
 # 基本语法
 
 ## 变量
 
 - 变量不仅是值，还可以是匿名函数、代码块。没有java static静态变量的概念
+
 - 变量是==**强类型**==，同一变量不能赋值不同类型  `var 变量名[ ：类型 ] [ ? 允许null]`
+
 - **支持变量类型推断**，但==**无初值必须指定类型**==。建议都赋值默认值
+
 - ==**<u>默认变量使用前不能为null</u>**==。可为 **`null`** 要在**类型/返回值**声明时添加 **`?`**
+
 - kotlin**一切都是类/对象**，包括java的void和函数，对应为**Unit**、**(形参类型...)->返回值类型**
+
 - 常量
-  - **`val`** 常量：只能赋值一次，可以先声明后赋值，但只能赋值一次
+  - **`val`** 常量：只能赋值一次，可以**先声明后赋值，但只能赋值一次**
     - 同java：`private final static Class v`      +  `public final static getV( )`
-  - **`const val`编译期常量**：  必须初始化赋值(编译时赋值)
+    - 尽量使用val常量，线程安全
+  - **`const val`编译期常量**：  必须**初始化赋值**(编译时赋值)
     - **编译时赋值**
     - 只能在**函数外定义**(函数执行时才赋值)
     - <u>类型**只能**是常见的**基本数据类型**</u>：数字、String、Boolean
     - 同java： `public final static Class v=XXX` (初始化赋值全部搞定)
+  
 - 解构赋值：**`var ( narName ... )=支持解构的变量`**
+
 - **`vararg`**：函数可变参数，***内部作为数组处理***而非集合。和具名参数配合<u>出现在任意位置</u>
   - **`*`**：可展开**数组**，**<u>不支持集合</u>**
-- **val** p: String **by** lazy {    // compute the string }
+  
+- Kotlin系统类型**分为可空类型和不可空类型**，两者往往存在继承关系。编译期强制检查
+
+  <img src="image-20210828104316428.png" alt="image-20210828104316428" style="zoom:67%;" />
 
 ### 特殊操作符
 
 - **`?`**允许null类型声明
 - **`!`**：平台类型，用于调用java避免返回null。配合**`?.`**使用
-- 涉及null访问处理
-
+- **可空声明**的变量必须使用**安全调用**：
   - **`? .`**安全调用/访问：**源对象为null直接返回**，终止调用/访问
   - **`? : 表达式/语句`**   Elvis  简化的<u>判空</u>表达式。<u>源对象**==null**执行表达式</u>
   - **`?.let ( 单参有返回值函数 )`**：<u>源对象**！=nul**l则执行该匿名函数</u>
@@ -58,9 +92,10 @@ kotlin不能和java语法混合，groovy可以
   -  判空操作和java一样  **! = null / == null**
 -  **`in`**：是否range/array/list元素
   -  **`is   !is`**  ：判断对象是否是指定类实例。同java instanceof。
-  -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法
+  -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法，**只能子转父**
     -  **`as`**：强制类型转换，<u>失败**抛出异常**</u>
-  -  **`as ?`**：强制类型转换，<u>失败返回**`null`**</u>。注意变量声明必须允许null (**?**)
+    -  **`as ?`**：强制类型转换，<u>失败返回**`null`**</u>。注意变量声明必须允许null (**?**)
+    -  ==**父类是禁止转换为子类型的**==
 - 解构赋值：**`var ( narName ... )=支持解构的变量`**。**`__`**下划线跳过某变量
   - `componentN( )`：用于对象解构，常用于数据类，N为 1 - 无穷大
 
@@ -94,23 +129,24 @@ var b : String? = a as? String          //失败返回null，注意变量声明?
 
 没有package时，每个脚本文件有各自作用域，方法外的顶层非private变量构成共享的全局作用域.
 
-建议使用package管理
+Kotlin中的目录与包的结构无须匹配，建议使package和目录同名。
 
 ### 异常处理
 
-和java语法一致try-catch-finally，支持try-resource-catch
+kotlin无受检查异常，**所有异常无需强制处理**。支持try-resource-catch
 
-try、catch是表达式，可以返回一个值，try表达式的返回值是try代码块中的最后一个表达式的结果或者是所有catch代码块中的最后一个表达式的结果，finally代码块中的内容不会影响表达式的结果
+- try、catch是表达式，可以返回一个值
+  - 无异常发生：try代码块中的最后一个表达式的结果
+  - 有异常发生：catch代码块中的最后一个表达式的结果。**finally代码块中的内容不会影响表达式的结果**
 
-throw抛出异常
+**`throw`**抛出异常
 
-自定义异常
+### 自定义异常
 
 继承Throwable类或其子类
 
-```
+```kotlin
 class UnskilledException () : IllegalArgumentException("操作不当")
-
 ```
 
 **`TODO( " reson " )`**：抛出异常 `NotImplementedError`,终止运行，返回`Nothing`
@@ -127,7 +163,9 @@ kotlin内置的函数，类似assert，可校验关键逻辑
 
 java有基本数据类型和引用类型；
 
-==kotlin**中一切都是引用数据类型。基本数据类型全为包装类型**。kotlin**编译器**把jvm**字节码**优化为java**基本数据类型**==
+==kotlin**中一切都是引用数据类型，基本数据类型全为包装类型**。kotlin**编译器**把jvm**字节码**优化为java**基本数据类型**==
+
+<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104432133.png" alt="image-20210828104432133" style="zoom: 67%;" />
 
 ### 数字Int/Long/Float/Double/Byte/Short
 
@@ -194,6 +232,8 @@ Kotlin ==**<u>一切都要显式转换</u>**==。小数字类型**不能**隐式
 
 **`.size`**：数组长度
 
+indices：下标序列
+
 **`.indexOf(X)/indexOfFirst{}  lastIndexOf(X)/indexOfLast{}`**：查找第一个/最后一个匹配元素下标
 
 .reversed() //数组内容反转
@@ -252,6 +292,8 @@ list----->set：toSet( )
 
 #### 常用方法
 
+entries：返回所有键值对
+
 支持 +=  -=增删元素
 
 get/ [ ] ：键不存在返回null
@@ -277,14 +319,18 @@ mapOf(Pair ( "Jimmy " ,20),Pair ( "Jack,20))
   - 默认实现：`equals`：针对引用 ===        `hashCode`：对象地址 `toString`：类名@hashCode
   - 不同平台不同实现，JVM中运行时映射成java Object
 - Unit：没有返回值。同java void，由于kotlin一切都是类/对象，为解决泛型专门做的包装
-- Nothing：有返回值但没有意义(同js undefined)。配合TODO( )抛出异常
+- Nothing?：**返回值只能null**但没有意义(<u>null的包装</u>)。`var nul: Nothing?=null`
+- Nothing：表达一个从来不存在的返回值。配合TODO( )抛出异常
 - 函数类型：**函数本身作为返回值**，即某函数返回一函数。
   - `methodName(...)：（argTypr...）->返回函数的返回值类型`
-- 
+
+
+
+<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104831368.png" alt="image-20210828104831368" style="zoom:50%;" />
 
 ## 特殊表达式
 
-kotlin中大多数语句都是表达式，返回值自动推断，无需指定声明
+kotlin中大多数语句都是表达式，返回值自动推断，无需指定声明。**表达式。匿名函数不能显式`return`**
 
 ### if-else表达式
 
@@ -342,6 +388,8 @@ for ((index,i) in arr.withIndex ()){
 
 类似于Java中的switch，严格分支执行，无须显式break
 
+支持多条件**逗号合并**
+
 基本使用格式：
 
 ```kotlin
@@ -362,6 +410,14 @@ fun Request.getBody() =
             is HttpError -> throw HttpException(response.status)
         }
 ```
+
+## 标签label
+
+常用于**跳出lambda函数**，继续循环下一次迭代。
+
+显式：`label Name@`：标签名后跟`@`字符.	隐式：与接受lambda函数的方法同名
+
+`return@labelName`
 
 # 函数
 
@@ -402,7 +458,7 @@ fun sum(a:Int , b:Int):Int=a+b
 
   - 显式指定形参类型放于Funcation类型定义，形参名放于函数定义
     - : **`var varName:(argType...) -> 返回类型 = {varName ... -> 语句块 }`**   
-    - <u>仅一个形参：可省略参数定义</u>，**`it`**是隐含参数名
+    - lambda内<u>仅一个参数：可省略参数定义</u>，**`it`**是隐含参数名，同groovy
     - 常用于stream/lambda运算
   - 自动推断：**`var varname=  {varName :Type ...->语句块}`**
     - 变量可自动推断*函数签名类型*时，可省略类型声明
@@ -412,7 +468,7 @@ fun sum(a:Int , b:Int):Int=a+b
 
 - 函数体中**变量声明没有括号**
 
-- 匿名函数变量为**参数末尾**，语句块可写在外面。类似**<u>groovy闭包</u>**
+- lambda为函数调用时的**参数在末尾**，语句块可写在外面；**只有一个参数，括号可省略**。类似**<u>groovy闭包</u>**
 
   ```kotlin
   var j:(Int,Int) ->Int={x,y -> x+y}		//常用于stream/lambda运算
@@ -459,11 +515,19 @@ str=str?.let{
 
 在Standard类中的方法都可以通过`return@方法名`这种格式结束当前方法
 
+**高阶函数内部this：调用者**。外部的this：调用者代码所在对象
+
+调用者(接受者)：调用/接受lambda函数的对象
+
 ![image-20210826170959977](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826170959977.png)
 
-.apply  看作一个配置函数，<u>传入一个接收者</u>，然后调用一系列函数来配置它以便使用，提供lambda给apply函数执行，它会<u>返回配置处理好的接收者</u>。this隐式为调用者。传入的匿名函数没有形参，没有it
+- run()：执行**无参**lambda函数，返回该**lambda执行结果**
 
-![image-20210826171859604](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826171859604.png)
+- **`.apply()`**：执行**无参**lambda函数，返回**调用/接受者本身**。常用于设置对象选项(如配置文件)
+- **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。参数时调用者本身(内部的this)。
+- **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。参数时调用者本身(内部的this)。
+- .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**
+- takeIf：根据lambda的布尔结果决定返回接收者对象还是null
 
 ```kotlin
 val file2 = File ( "E://i have a dream_copy.txt").apply{
@@ -471,35 +535,11 @@ val file2 = File ( "E://i have a dream_copy.txt").apply{
 	setWitable (true)
 	setExecutable (false)
 }
+//交换变量
+a = b.also { b = a }
 ```
 
-.let   闯入一个形参叫用着本身，it引用。null不执行
-
-![image-20210826172720537](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826172720537.png)
-
-.also
-
-![image-20210826175259799](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826175259799.png)
-
-交换变量 var a = 1
-var b = 2
-a = b.also { b = a }
-
-.run
-
-![image-20210826174140870](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826174140870.png)
-
-支持执行函数引用    ::具名函数名
-
-.with  不常用
-
-![image-20210826174318499](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826174318499.png)
-
-
-
-![image-20210826180038706](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826180038706.png)
-
-
+支持执行函数引用    **: :具名函数名**
 
 # 类
 
@@ -508,6 +548,8 @@ a = b.also { b = a }
 成员`方法`：无指定**默认public**，支持private
 
 类本身、类的成员函数默认`final`禁止继承/冲刺额，`open`开放继承/重写
+
+**`this`**：实例对象
 
 ## 构造函数 `constructor`
 
@@ -527,7 +569,7 @@ a = b.also { b = a }
     - **新的参数个数 >  已有的参数个数**
     - kotlin次构造函数会**调用涉及到的所有构造函数**，从==**主-->[次..]-->当前调用**==。不同于java 构造函数仅调用一次
 - 支持field初始化默认值(于jvm字节码的构造函数针对变量本身赋默认值)，支持具名调用
-- 初始化顺序：主构造var/val声明的field-----类中field默认值、init**书写顺序**-------次构造。**重复属性可覆盖赋值**
+- 初始化顺序：主构造**类头var/val声明**的field-----类中field默认值、init**书写顺序**-------次构造。**重复属性可覆盖赋值**
   - 建议前两个选其一
   - 类中field默认值、init按**书写顺序**执行
   - **书写顺序**：kotlin初始化机制 作为 **jvm构造函数体执行**，**初始化赋值按书写顺序执行**。顺序十分重要
@@ -577,7 +619,9 @@ var age=10
 
 ### by lazy{ value}惰性初始化
 
-**`by lazy{ 调用函数 }`**：写好初始化逻辑，**首次使用该`field`**才调用**写好的相关逻辑**赋值
+**`by lazy{ 变量初始化代码块 }`**：写好初始化逻辑，**首次使用该`field`**才调用**写好的相关逻辑**赋值
+
+懒加载**代码块只有首次初始化才执行**，**之后直接返回最终结果**，不会执行代码块
 
 ```kotlin
 classPlayer5(_name : string)i
@@ -607,6 +651,8 @@ classPlayer5(_name : string)i
 ### 接口
 
 内部元素默认`open`
+
+接口被继承/实现**没有括号**
 
 可以声明`field`，但不建议。建议使用**抽象类**设置`field`
 
@@ -664,13 +710,14 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 - `data class  ([var] 形参:Type...])`
 - **主构造函数至少有一个参数，必须用val或var修饰**
 - 不可用abstract、open、sealed或inner修饰。
-
+- **不能继承类，但可以实现接口**
 - 自动生成：完全针对数据类 **类头声明时var变量值**，而非类体内声明的成员变量
 
   - equals()、hashCode()：
   - toString()：`"类名( 数据类 类头声明时var变量值)"`
-  - componentN( )解构声明：神对  数据类头声明时var变量值
+  - componentN( )解构声明：针对  数据类头声明时var变量值
   - copy(类头声明时var变量值)：克隆对象。利用**主构造函数**(而非次)，创建新实例。特别注意没有完整赋值时需手动赋值
+  - 所有field的set/get
 - 用于model、entity，保存数据
 
 ### object 单例模式
@@ -754,15 +801,31 @@ obj.javaClass：运行时对象类型
 
 # < >泛型
 
-同java一致
+泛型是一种编译时的安全检测机制，它允许在定义类、接口、方法时使用类型参数，声明的类型参数在使用时用具体的类型来替换。泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数。在本章我们将对泛型进行详细讲解。
 
-泛型函数：可声明额外泛型
+## 泛型类/接口
 
-泛型约束  `<T: 父类>`
+实例化同java语法。
 
-`out`：协变，将泛型类型作为函数输出（生产）
+`class/interface  名<T、E...> [ ：父类( ) ] [ ：接口名] { }`
 
-`in`：逆变，只将泛型类型作为函数输入参数（消费）
+泛型类型**`?`**：允许为null
+
+## 泛型方法
+
+- 定义：`fun < T、E...> 方法名 ( 参数... )：返回类型  { }` 
+  - 泛型类内定义泛型方法：不用在方法头重新声明类头的泛型
+- 调用：泛型方法调用不用指定类型，编译器智能推断
+
+## 泛型约束
+
+声明上界：  `<T: 父类上届>`
+
+默认泛型**类**的**父子类关系** 与 泛型**元素**的父子关系 **无关**。同Java
+
+`out`：协变，将泛型类型作为函数输出（生产）。
+
+`in`：逆变，只将泛型类型作为函数输入参数（消费）。
 
 ```kotlin
 class MagicBox<T>(item:T){
@@ -779,17 +842,25 @@ class MagicBox<T>(item:T){
 
 ![image-20210827160845281](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827160845281.png)
 
+## 泛型擦除
+
 
 
 # 扩展
+
+扩展属性和扩展函数的本质是以静态导入的方式来实现的
+
+**`this`**：函数调用(接受)者
+
+可以新建一个公共源文件，把自定义的扩展属性和扩展函数都放到包中，作为一个通用工具类来使用。
 
 ## 扩展函数
 
 扩展在**不直接修改类定义的情况下增加类功能**，扩展可以用于自定义类，也可以用于比如List、String，以及Kotlin标准库里的其他类。和继承相似，扩展也能共享类行为，在你无法接触某个类定义，或者某个类没有使用open修饰符，导致你无法继承它时，扩展就是增加类功能的最好选择。
 
-类名 . 扩展方法 (... )  
+`fun <T/E...> 类名 . 扩展方法名 (... )  ：返回类型 {}`
 
-支持泛型
+**支持泛型**扩展函数
 
 ```kotlin
 fun string. addExt(amount : Int = 1)={
@@ -803,9 +874,9 @@ fun <T>T.easyPrint()={}
 
 ## 扩展属性
 
-val 类名.属性名+get/set
+`val 类名.属性名 ：返回类型 +get/set`
 
-
+扩展属性允许定义在类或者Kotlin文件中，不允许定义在函数中
 
 # kotlin和java互操作
 
@@ -827,7 +898,7 @@ Java可能返回null       声明!平台类型配合 ?.
 
 `@JvmOverload`：强制  有默认参数的函数 重载，便于Java调用
 
-`@JvmStatic`：注解于伴生对象内的**函数**，static变量用`@JvmField`注解
+`@JvmStatic`：注解于**伴生对象**内的**函数**，static变量用`@JvmField`注解
 
 `@Throws(checked exception.class)`：注解于**可能抛出java受检查异常**的**函数**中(java必须处理受检查异常，kotlin不用)
 
@@ -840,3 +911,7 @@ Java可能返回null       声明!平台类型配合 ?.
 # 流操作
 
 # 协程
+
+![image-20210827193301589](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827193301589.png)
+
+![image-20210827193908156](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827193908156.png)

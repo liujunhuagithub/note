@@ -24,20 +24,6 @@ kotlin不能和java语法混合，groovy可以
 
 <img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210825105631637.png" alt="image-20210825105631637" style="zoom:50%;" />
 
-
-
-![image-20210828101628554](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101628554.png)
-
-
-
-![image-20210828101657549](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101657549.png)
-
-![image-20210828101709209](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101709209.png)
-
-![image-20210828101736292](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101736292.png)
-
-![image-20210828101751761](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828101751761.png)
-
 # 基本语法
 
 ## 变量
@@ -51,6 +37,8 @@ kotlin不能和java语法混合，groovy可以
 - ==**<u>默认变量使用前不能为null</u>**==。可为 **`null`** 要在**类型/返回值**声明时添加 **`?`**
 
 - kotlin**一切都是类/对象**，包括java的void和函数，对应为**Unit**、**(形参类型...)->返回值类型**
+
+- **`_`**下划线：不适用变量。用于lambda函数声明、解构赋值
 
 - 常量
   - **`val`** 常量：只能赋值一次，可以**先声明后赋值，但只能赋值一次**
@@ -69,17 +57,21 @@ kotlin不能和java语法混合，groovy可以
   
 - Kotlin系统类型**分为可空类型和不可空类型**，两者往往存在继承关系。编译期强制检查
 
+- **`as`**导入包起别名消除歧义
+
+- 多线程：@Volatile   @Synchronized用于多线程变量/函数
+
   <img src="image-20210828104316428.png" alt="image-20210828104316428" style="zoom:67%;" />
 
 ### 特殊操作符
 
 - **`?`**允许null类型声明
 - **`!`**：平台类型，用于调用java避免返回null。配合**`?.`**使用
-- **可空声明**的变量必须使用**安全调用**：
+- **可空声明**的变量必须使用**安全调用**，返回**空安全?类型**：
   - **`? .`**安全调用/访问：**源对象为null直接返回**，终止调用/访问
-  - **`? : 表达式/语句`**   Elvis  简化的<u>判空</u>表达式。<u>源对象**==null**执行表达式</u>
-  - **`?.let ( 单参有返回值函数 )`**：<u>源对象**！=nul**l则执行该匿名函数</u>
-  - **`! !.`**    :非null断言，源对象=null则抛出异常 `KotlinNullPointerException`，慎重使用
+  - **`? : 表达式/语句`**   Elvis  简化的<u>判空</u>表达式。<u>接收者**==null**执行表达式</u>
+  - **`?.let ( 单参有返回值函数 )`**：<u>接收者**=nul**</u>不执行，！=null才会执行。`. let`=null报错
+  - **`! !.`**    :非null断言，接收者=null则抛出异常 `KotlinNullPointerException`，慎重使用
   - *
 - 判断
 
@@ -88,7 +80,7 @@ kotlin不能和java语法混合，groovy可以
   -  判空操作和java一样  **! = null / == null**
 -  **`in`**：是否range/array/list元素
   -  **`is   !is`**  ：判断对象是否是指定类实例。同java instanceof。
-  -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法，**只能子转父**
+  -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法，**只能子转父**。不安全需要显式转换
     -  **`as`**：强制类型转换，<u>失败**抛出异常**</u>
     -  **`as ?`**：强制类型转换，<u>失败返回**`null`**</u>。注意变量声明必须允许null (**?**)
     -  ==**父类是禁止转换为子类型的**==
@@ -159,7 +151,9 @@ kotlin内置的函数，类似assert，可校验关键逻辑
 
 java有基本数据类型和引用类型；
 
-==kotlin**中一切都是引用数据类型，基本数据类型全为包装类型**。kotlin**编译器**把jvm**字节码**优化为java**基本数据类型**==
+==kotlin**中一切都是引用数据类型**==
+
+kotlin编译器将：==**不可空基本类型、XXXArray原生数组编译为jvm基本类型；可空基本类型编译为包装类型装箱**==
 
 <img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104432133.png" alt="image-20210828104432133" style="zoom: 67%;" />
 
@@ -174,7 +168,8 @@ Kotlin ==**<u>一切都要显式转换</u>**==。小数字类型**不能**隐式
 - 浮点和--->整数：toInt( )仅整数位   roundToInt( )四舍五入
 - 支持下划线分割
 - **`/`**  : 整数间的除法总是返回整数
-
+- 支持二进制和十六进制，不支持八进制
+- *位运算没有符号表示*，只能简写表示
 
 ### Boolean
 
@@ -212,9 +207,9 @@ Kotlin ==**<u>一切都要显式转换</u>**==。小数字类型**不能**隐式
 
 ## 数组
 
-定义：无需java new
+**`Array`类表示**
 
-1. 基本数据类型数组：**`xXXArrayOf( )`**，返回`xXXArray`。<u>不支持string</u>
+1. 基本数据类型数组：**`xXXArrayOf( )`**，返回`xXXArray`，**编译为jvm基本类型**。<u>不支持string</u>
 
 2. 非基本类型：**`arrayOf( )`**   ，返回`Array<XXX>`。可自动推断，建议使用
 
@@ -258,6 +253,8 @@ for ((index,i) in arr.withIndex ()){
 
 **`*`**：可展开**数组**用于函数实参，==**<u>不支持集合</u>**==
 
+**只读**集合、只读Map的**value**是**型变**的；**可读写**集合**不是型变**的
+
 <img src="image-20210826182332608.png" alt="image-20210826182332608" style="zoom: 67%;" />
 
 <img src="image-20210826192343579.png" alt="image-20210826192343579" style="zoom:67%;" />
@@ -265,6 +262,8 @@ for ((index,i) in arr.withIndex ()){
 ### List/Set
 
 listOf(...):不可变列表     mutableListOf(...)可变列表     setOf(...):不可变Set     mutableSetOf(...)可变Set
+
+默认`ArrayList` / `LinkedHashSet`，保留插入顺序
 
 #### 常用方法
 
@@ -282,11 +281,17 @@ getOrNull：不存在返回Null
 
 list----->set：toSet( )
 
+List元素和顺序完全一致则相等；Set元素相同即可
+
 ### Map
 
 **`to`**关键字：左右两边转为一对Pair，常用于Map初始化
 
+默认`LinkedHashMap`，保留插入顺序
+
 #### 常用方法
+
+两Map键值对相同即相等，不论顺序
 
 entries：返回所有键值对
 
@@ -309,6 +314,16 @@ mapof ( "Jack" to 20，"Jason" to 18,"Jack" to 30)
 mapOf(Pair ( "Jimmy " ,20),Pair ( "Jack,20))
 ```
 
+### Sequence序列
+
+① sequenceOf()   ② generate Sequence()  ③ sequence()+yield()
+
+Sequence：每个**元素**逐个通过Stream**整条计算链**，**没有中间集合**。**惰性**计算。同java Stream
+
+Iterator：每个**计算步骤**依次处理**整个集合**，生成中间集合。**积极**计算
+
+大集合复杂计算生成有限数据建议使用Sequence
+
 ### 其他常用类型
 
 - Any：kotlin中所有类的父类，没有父类默认Any是父类。提供
@@ -323,6 +338,114 @@ mapOf(Pair ( "Jimmy " ,20),Pair ( "Jack,20))
 
 
 <img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104831368.png" alt="image-20210828104831368" style="zoom:50%;" />
+
+### 常用集合处理函数
+
+`XXXTo(mutableXXX)`:结果**添加**到指定可变集合，并返回处理结果
+
+**可读写**集合：改变原集合：**无ed后缀**            **只读**集合：生成新集合，**ed后缀**
+
+`map`：映射  `mapIndexed`：下标映射 {idx,value ->}    。，必须非null
+
+`map/IndexedNotNull`：过滤null值 
+
+`mapKeys/Values`：针对Map的本身K/V转换，生成新的Map，另一方不变。key相同后者会覆盖
+
+```kotlin
+fun main() {
+    val numbersMap = mapOf("key1" to 1, "key2" to 2, "key3" to 3, "key11" to 11)
+    println(numbersMap.mapKeys { it.key.toUpperCase() })
+    println(numbersMap.mapValues { it.value + it.key.length })
+}
+
+{KEY1=1, KEY2=2, KEY3=3, KEY11=11}
+{key1=5, key2=6, key3=7, key11=16}
+```
+
+`filter`()：返回true元素，必须非null
+
+`filterIndexed()`：带索引下标， 必须非null
+
+`filterIsInstance()`：返回指定类型的元素，忽略null
+
+`filterNotNull`()：返回非null结果，忽略null的元素
+
+`sort()`:针对可变集合本身排序，**改变原集合**  `sorted()`：创建排序好的新集合，**不改变原集合**
+
+
+
+`zip(` )：返回**两集合的最短  `List<Pair>` **  `zip(){k,v-> }`：对两集合的最短  List\<Pair>做map转换
+
+`unzip`(某map)：返回两个list，分别是listKey，listValue
+
+
+
+`associateWith`()：集合转为Map，key为元素本身，value从元素计算；
+
+`associateBy`()：key从元素计算，value为元素本身。keySelector / valueTransform自定义k v
+
+`associate`：返回Pair。影响性能
+
+
+
+`flatten`()针对集合的元素 为 集合 时，打散所有元素构成新集合
+
+`flatMap`()：先针对element为collection做 <u>先map( )后flatten( )</u>
+
+
+
+`joinToString`()：集合转为字符串：默认无开头结尾，逗号分隔，可指定。`separator` `prefix` `postfix`
+
+
+
+`partition( boolean)`：原集合拆分成true/false的**一对Pair**<List,List>。可解构赋值
+
+`groupBy`()：返回`Map\<key,List>`，lambda根据element计算，相同key的element组成List。可指定keykeySelector和valueTransform
+
+`chunked(size,块转换)`：将原集合分为**指定大小的块**，构成二维数组。可**针对块**转换
+
+windowed()：滑动窗口
+
+
+
+检验谓词：`any`   `all`   `none`。**空集合**调用 `all()` 都会返回 `true`。
+
+`any()` 和 `none()` 无lambda参数：检查集合是否为空。 集合中有元素，`any()` 返回 `true`。`none()` 相反
+
+
+
+ `plus+`  / `minus-`：增加至末尾。第二个操作数是一个**元素**， `minus`移除**首次** ；如果是**集合**，移除 **所有**
+
+removeAll:移除所有    retainAll：保留元素(求交集)
+
+```kotlin
+val minusList = numbers - listOf("three")//移除所有元素
+val minusList = numbers - "three"      //移除首个元素
+```
+
+#### 获取元素
+
+splice(index...)：取元素  take/tekeLast()：头/尾取指定数量元素      drop/dropLast()：头/尾去除元素，返回剩余
+
+takeWhile/takeLastWhile：take+while循环结合      dropWhile/dropLastWhile：drop+while循环结合
+
+`subList`(s,e)：取list子区间，**随原集合变化**
+
+针对list/set：`elementAtOrNull`：不存在返回null         `elementAtOrElse`：不存在返回lambda结果
+
+first/last：第一个/最后满足条件的元素    `random`()随机取**一个**，为null抛异常  `randomOrNull`
+
+#### 排序
+
+简单比较：compareBy(lambda)生成针对lambda结果的比较器          sorted():自然排序 
+
+`sortedWith(比较器)`      `sortedBy(比较量)`  `reversed()`逆序，生成元素副本新集合  shuffled随机乱序
+
+#### 聚合(不能存在null元素)
+
+minOrNull/maxOrNull/sum/average/         XXXByOrNull/WithOrNull：根据比较器计算   OrNull针对empty集合
+
+`fold(iniValue，积累lambda)`：指定初值 `reduce(积累lambda)`  ：无初值      **{积累值，当前元素}->**
 
 ## 特殊表达式
 
@@ -351,6 +474,10 @@ fun maxOf(a: Int, b: Int) = if (a > b) a else b
 
 匹配条件为Boolean可省略括号
 
+任意表达式都可作为分支判断条件
+
+判断表达式(括号内语句)可**声明为变量**，此变量作用域仅为**`when`体内**
+
 **else必须书写**，除非是<u>枚举类型</u>全部有匹配条件，编译器会自动检测
 
 ```kotlin
@@ -369,7 +496,7 @@ when {
 
 <u>循环变量无须var声明</u>
 
-通常针对Range、Array、List、Map、Set
+任何实现iterator迭代器的对象，通常针对Range、Array、List、Map、Set
 
 ```
 for(循环遍量 in 可循环对象){
@@ -409,7 +536,7 @@ fun Request.getBody() =
 
 ## 标签label
 
-常用于**跳出lambda函数的当前循环**，继续循环下一次迭代。
+常用于函数嵌套时，**跳出内层lambda函数的当前循环**，继续循环下一次迭代。(类似continue，没有break)
 
 显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受lambda函数的方法同名
 
@@ -424,21 +551,21 @@ ints.forEach lit@{
 
 ```
 
-
-
 # 函数
 
 Kotlin中函数可以有普通的定义方式、可以用表达式函数体、可以把Lambda赋值给变量。函数可以放置在类的外面（顶层函数）、可以放置在方法的内部（嵌套函数）、可以作为参数传递、可以作为函数的返回值。函数的功能非常强大与灵活，并且地大大提升。Kotlin中的函数就是一等公民。
 
 ## 声明语法
 
-- `可见性修饰符  fun  methodName（ v1 : Class1 [?]）[ : 返回值 ]`
+- `可见性修饰符  fun  methodName（ v1 : Class1 [?]） : 返回值 `
 - 无返回值时：①**`Unit`** (void，为解决泛型专门做特殊包装)           ②省略不写，默认Unit类型
+  - 必须写`return`，具名函数的返回值不能智能推断
 - 函数执行**默认接受非null实参**，函数形参明加<u>**`？`**可接受null实参</u>
 - 支持**默认参数**、**具名参数**、**可变参数 `vararg`**
 - 具名函数中：**单个表达式作为函数体**，**不用`{ }`**包裹，无须指定返回值(**类型自动推断**)。
 - 入口函数可无参数，名字必须是`main`
 - **\` \` 反引号**：函数名含**特殊字符**(空格、<u>关键字</u>)，<u>声明</u>、<u>调用</u>时反引号包裹。解决java/kotlin互调关键字冲突
+- 支持函数内声明局部函数(闭包)，内部函数可访问外部变量
 
 ```kotlin
 fun main (){}
@@ -465,6 +592,7 @@ fun sum(a:Int , b:Int):Int=a+b
 
   - 显式指定形参类型放于Funcation类型定义，形参名放于函数定义
     - : **`var varName:(argType...) -> 返回类型 = {varName ... -> 语句块 }`**   
+      - **`var 接收者.varName:(argType...) -> 返回类型 = {varName ... -> 语句块 }`**   ：接收者作为this
     - lambda内<u>仅一个参数：可省略参数定义</u>，**`it`**是隐含参数名，同groovy
     - 常用于stream/lambda运算
   - 自动推断：**`var varname=  {varName :Type ...->语句块}`**
@@ -476,6 +604,10 @@ fun sum(a:Int , b:Int):Int=a+b
 - 函数体中**变量声明没有括号**
 
 - lambda为函数调用时的**参数在末尾**，语句块可写在外面；**只有一个参数，括号可省略**。类似**<u>groovy闭包</u>**
+
+- lambda内部的**`this`**：所在代码块的外部对象，同java
+
+- lambda显式返回值：`return@lambda标签  value`。否则隐式返回最后一行
 
   ```kotlin
   var j:(Int,Int) ->Int={x,y -> x+y}		//常用于stream/lambda运算
@@ -495,6 +627,35 @@ fun sum(a:Int , b:Int):Int=a+b
 ### 函数引用
 
 **`：：具名`**(双冒号)： 具名函数----->实参，进行函数式编程。
+
+### infix中缀表示
+
+忽略点号、括号。
+
+必须满足①成员函数、扩展函数    ②  只有一个形参   ③形参不能vararg，不能有默认值
+
+- 必须有调用者对象
+- 优先级低于算术操作符、类型转换以及 `rangeTo` 操作符，高于布尔操作符 `&&` 与 `||`、`is-` 与 `in-` 检测
+
+```kotlin
+infix fun Int.shl(x: Int): Int { …… }
+
+// 用中缀表示法调用该函数
+1 shl 2
+
+// 等同于这样
+1.shl(2)
+
+class MyStringCollection {
+    infix fun add(s: String) { /*……*/ }
+    
+    fun build() {
+        this add "abc"   // 正确
+        add("abc")       // 正确
+        //add "abc"        // 错误：必须指定接收者
+    }
+}
+```
 
 ## 特殊函数
 
@@ -529,12 +690,13 @@ str=str?.let{
 ![image-20210826170959977](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826170959977.png)
 
 - run()：执行**无参**lambda函数，返回该**lambda执行结果**
-
 - **`.apply()`**：执行**无参**lambda函数，返回**调用/接受者本身**。常用于设置对象选项(如配置文件)
 - **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。参数时调用者本身(内部的this)。
 - **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。参数时调用者本身(内部的this)。
 - .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**
 - takeIf：根据lambda的布尔结果决定返回接收者对象还是null
+- 支持执行函数引用    **: :具名函数名**
+- `?.let`  和 `.let` 不同。前者null不执行，后者null会报错
 
 ```kotlin
 val file2 = File ( "E://i have a dream_copy.txt").apply{
@@ -546,11 +708,11 @@ val file2 = File ( "E://i have a dream_copy.txt").apply{
 a = b.also { b = a }
 ```
 
-支持执行函数引用    **: :具名函数名**
+
 
 # 类
 
-`field`：**默认private**，不支持public。==**类<u> 内 外</u> 部操作field都会自动调用get/set**==
+==**类<u> 内 外</u> 部操作field都会自动调用get/set**==
 
 成员`方法`：无指定**默认public**，支持private
 
@@ -558,26 +720,39 @@ a = b.also { b = a }
 
 **`this`**：实例对象
 
+## 可见性
+
+**默认public**
+
+- package：**顶层声明**
+  - 默认为`public`，随处可用/见；private本文件可见；不支持protected
+  - internal：同模块可见
+- 构造函数：类头中在`constructor之前`声明
+- 类内：`field`：**默认private**，不支持public。其他和java一致
+- internal：模块可见。(maven、gradle项目)
+- 局部变量、函数、类本身不支持可见性修饰
+
+get可见性与属性本身声明一致，set可有独立可见性
+
 ## 构造函数 `constructor`
 
 - **一个主**构造函数：
   - 声明方式：
     - 位于**<u>类声明后</u>** `class 类名 [ constructor ] (形参:Type...){}`+**`init{ }/初始化赋值/var声明`**。没有其他修饰符可省略constructor。
-    - **`init{ }`**：完全自定义构造函数执行逻辑，支持**`this`**。用于检查值合法
+    - **`init{ }`**：完全自定义构造函数执行逻辑，支持**`this`**，可访问主构造参数。
     - 构造函数<u>形参变量名</u>可直接初始化赋值给field。一般**`_`**下划线开头的与<u>field同名</u>可自动匹配
-    - **`var/val`** 声明构造**形参**，不用在类体专门书写field。以原值get/set，**不能自定义get/set**
-  - **<u>未显式声明则默认生成 无参主构造函数</u>**
+    - **`var/val`** 声明构造**形参**，不用在类体专门书写field。val只有get没有set
+  - **<u>未显式声明则默认生成 public无参主构造函数</u>**
 - **多个次**构造函数
   - 位于**<u>类体内</u>**
   - ==**必须调用主构造函数或其他次构造函数**==：`constructor (形参:Type...):this（参数列表)`
   - 声明的<u>新次构造函数</u>调用<u>已有的构造函数`:this(参数...)`</u>：
-    - **没有主**构造函数也会**隐式调用**
+    - **没有主**构造函数也会**隐式调用**无参主构造
     - 编译器自动**按参数书写顺序赋值、调用已有构造函数**
     - 参数**顺序**必须**一致**。
-    - **新的参数个数 >  已有的参数个数**
     - kotlin次构造函数会**调用涉及到的所有构造函数**，从==**主-->[次..]-->当前调用**==。不同于java 构造函数仅调用一次
 - 支持field初始化默认值(于jvm字节码的构造函数针对变量本身赋默认值)，支持具名调用
-- 初始化顺序：主构造**类头var/val声明**的field-----类中field默认值、init**书写顺序**-------次构造。**重复属性可覆盖赋值**
+- 初始化顺序：主构造**类头var/val声明**的field-----类中field默认值、`init`**书写顺序**-------次构造。**重复属性可覆盖赋值**
   - 建议前两个选其一
   - 类中field默认值、init按**书写顺序**执行
   - **书写顺序**：kotlin初始化机制 作为 **jvm构造函数体执行**，**初始化赋值按书写顺序执行**。顺序十分重要
@@ -629,7 +804,11 @@ var age=10
 
 **`by lazy{ 变量初始化代码块 }`**：写好初始化逻辑，**首次使用该`field`**才调用**写好的相关逻辑**赋值
 
+==只能针对`val`==
+
 懒加载**代码块只有首次初始化才执行**，**之后直接返回最终结果**，不会执行代码块
+
+**默认**线程加**同步锁**synchronized，LazyThreadSafetyMode.PUBLICATION多线程计算
 
 ```kotlin
 classPlayer5(_name : string)i
@@ -642,19 +821,35 @@ classPlayer5(_name : string)i
 }
 ```
 
+### typealias类型别名
+
+`typealias  新名称=旧名称`。支持泛型、函数
+
+```kotlin
+typealias  HH=Set<String>
+typealias Predicate<T>=(T)->Boolean
+```
+
+
+
 ## 继承
 
 - `class 子类名：父类(构造函数) /接口名{ }`
+- 被调用的 父类构造函数 可使用 子主构造的参数。
 - **类本身**、类的成员**函数**默认`final`禁止继承/重写，`open`开放继承/重写。支持**类单继承，接口多实现**
 - `open/override`：子类中重写的==**属性、方法**==需要override修饰符。父方法默认final，需要加`open`修饰符
   - 可在类头声明时覆盖变量
-- `super`：子类中访问父类成员。方法冲突使用：`super<某父类>`
-
+  - `final override`禁止再次覆盖
+  - 可以用var覆盖val，反之不可以
+  - 覆写方法：子类中**被override的方法不能有默认值**
+- `super`：子类中访问父类成员。方法歧义冲突使用：`super<某父类>`
 - Any：kotlin中所有类的父类，没有父类默认Any是父类。提供
   - 默认实现：`equals`：针对引用 ===        `hashCode`：对象地址 `toString`：类名@hashCode
   - 不同平台不同实现，JVM中运行时映射成java Object
 - `abstract`：支持抽象类、抽象方法。默认`open`
 - 实现接口`interface`只写接口名，可实现多个接口(逗号分隔)
+- 生命周期：父类初始化---------->子类初始化
+  - 父类初始化时子类变量不存在，不能调用相关变量/函数
 
 ### 接口
 
@@ -681,6 +876,22 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 }
 ```
 
+#### 函数式接口
+
+只有一个抽象方法，用于**创建lambda实例**。常用于java转kotlin。kotlin有函数类型，所以函数式接口不常用
+
+```kotlin
+fun interface IntPredicate {
+   fun accept(i: Int): Boolean
+}
+
+val isEven = IntPredicate { it % 2 == 0 }
+
+fun main() {
+   println("Is 7 even? - ${isEven.accept(7)}")
+}
+```
+
 ### 类型判断
 
 **`is   !is`**  ：判断对象是否是指定类实例。同java instanceof。
@@ -688,20 +899,30 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法
 -  **`as`**：强制类型转换，<u>失败**抛出异常**</u>
 -  **`as ?`**：强制类型转换，<u>失败返回**`null`**</u>。注意变量声明必须允许null (**?**)
+-  子类不能转为父类
 
-## kotlin嵌套类 / inner内部类
+## kotlin嵌套类、接口  /  inner内部类
 
-嵌套类：无修饰符，**不能访问外部类**
+嵌套类、接口：无修饰符，**不能访问外部类**
 
 内部类：`inner`修饰，**可以访问外部类成员**。同java <u>成员内部类</u>
+
+- 内部类访问外部类：**`this@外部类名 . 外部成员`**
 
 ## 特殊类
 
 ### enum枚举类
 
-主构造函数**`val`声明参数**
+主构造函数**`val`声明参数**同java，有成员。枚举类中**每个枚举常量**仅一个实例，**单例**
 
-枚举类中每个枚举常量仅一个实例，**单例**
+可实现接口，不能继承类。
+
+每个枚举常量都有`name`、`ordinal`
+
+```kotlin
+枚举类名.valueOf("常量名")  //获取某常量实例
+枚举类名.values() //所有枚举常量
+```
 
 ### sealed密封类
 
@@ -709,19 +930,31 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 
 密封类的构造函数private，因此密封类的**子类**只能**定义**在密封类的**内部**或者**同一个文件**
 
-由于密封类的子类可以不在该密封类中，但是必须与密封类在同一个文件中
-
 密封类的间接继承子类可以声明在其他文件中。
+
+```kotlin
+sealed class Expr
+data class Const(val number: Double) : Expr()
+data class Sum(val e1: Expr, val e2: Expr) : Expr()
+object NotANumber : Expr()
+
+fun eval(expr: Expr): Double = when(expr) {
+    is Const -> expr.number
+    is Sum -> eval(expr.e1) + eval(expr.e2)
+    NotANumber -> Double.NaN
+    // 不再需要 `else` 子句，因为我们已经覆盖了所有的情况
+}
+```
 
 ### data数据类
 
 - `data class  ([var] 形参:Type...])`
-- **主构造函数至少有一个参数，必须用val或var修饰**
-- 不可用abstract、open、sealed或inner修饰。
-- **不能继承类，但可以实现接口**
-- 自动生成：完全针对数据类 **类头声明时var变量值**，而非类体内声明的成员变量
+- **主构造函数至少有一个参数，必须用val或var修饰**。可有次构造函数
+- 不可用abstract、**`open`**、sealed、inner修饰。不能当父，可以当子
+- **可继承类、接口**
+- 自动生成：针对数据类 **类头声明的var/val变量**，而**非类体内声明**的成员变量
 
-  - equals()、hashCode()：
+  - equals()、hashCode()：可自定义
   - toString()：`"类名( 数据类 类头声明时var变量值)"`
   - componentN( )解构声明：针对  数据类头声明时var变量值
   - copy(类头声明时var变量值)：克隆对象。利用**主构造函数**(而非次)，创建新实例。特别注意没有完整赋值时需手动赋值
@@ -733,6 +966,8 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 #### `object`  单例对象
 
 访问方式：`ClassName.varName`**不需要创建该类的实例对象**，默认创建了该类的单例对象
+
+可用于书写Utils类
 
 ```kotlin
 object Singleton {
@@ -746,7 +981,11 @@ object Singleton {
 
 #### 单例对象表达式(同java匿名内部类)
 
-生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类
+生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类。常用于注册监听
+
+**可修改外部变量**，与java不同
+
+作为函数返回值时，只能是private。public返回的对象表达式为Any类型
 
 ```kotlin
 open class Player {
@@ -766,13 +1005,16 @@ println(p. load())
 
 - `companion object   [可省略的伴生对象名]  {   }`
 - Kotlin中没有静态变量，伴生对象来替代Java中的静态变量的作用。<u>同java 静态代码块</u>
+- 可实现接口
 - ==**一个类有且仅有一个伴生对象，所有实例 共享 该类的伴生对象**==
-- 伴生对象创建/初始化时机：
+- 伴生对象创建/初始化时机（延迟初始化）：
   - **类加载 ( 创建实例  )**
   - **主动** 访问/调用 某类**伴生对象成员**
+  - **仅初始化一次**
 - 调用方式：
   - **`ClassName . 伴生成员`**
-  - ClassName . 伴生对象名 . 伴生成员/函数。默认伴生对象名`Companion`
+  - ClassName . 伴生对象名 . 伴生成员/函数。         默认伴生对象名`Companion`
+- **运行时作为对象的实例成员存在**。只是看起来像静态成员，便于java调用提供@JvmStatic/JvmField注解
 
 ```kotlin
 open class ConfigMap {
@@ -790,13 +1032,53 @@ ConfigMap.load ()
 
 ### 类委托
 
-一个是委托类，一个是被委托类。在委托类中并没有真正的功能方法，该类的功能是通过调用被委托类中的方法实现的
+一个是委托类，一个是被委托类。在委托类中并没有真正的功能方法，该类的功能是通过调用被委托类中的方法实现的。把所有方法委托给`by后的指定对象`
+
+```kotlin
+interface Base {
+    val message: String
+    fun print()
+}
+
+class BaseImpl(val x: Int) : Base {
+    override val message = "BaseImpl: x = $x"
+    override fun print() { println(message) }
+}
+
+class Derived(b: Base) : Base by b {
+    // 在 b 的 `print` 实现中不会访问到这个属性
+    override val message = "Message of Derived"
+}
+
+fun main() {
+    val b = BaseImpl(10)
+    val derived = Derived(b)
+    derived.print()
+    println(derived.message)
+}
+```
 
 ### 属性委托
 
 一个类的某个属性值不是在类中直接进行定义，而是将其委托给一个代理类，从而实现对该类的属性进行统一管理。
 
-![image-20210826160839700](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826160839700.png)
+```kotlin
+class Example {
+    var p: String by Delegate()
+}
+class Delegate {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): String {
+        return "$thisRef, thank you for delegating '${property.name}' to me!"
+    }
+ 
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
+        println("$value has been assigned to '${property.name}' in $thisRef.")
+    }
+}
+
+val e = Example()
+println(e.p)
+```
 
 ## operator运算符重载
 
@@ -806,7 +1088,7 @@ ConfigMap.load ()
 
 ### 类元数据
 
-obj.javaClass：运行时对象类型
+obj.javaClass：类信息
 
 
 
@@ -826,6 +1108,7 @@ obj.javaClass：运行时对象类型
 
 - 定义：`fun < T、E...> 方法名 ( 参数... )：返回类型  { }` 
   - 泛型类内定义泛型方法：不用在方法头重新声明类头的泛型
+  - 泛型类型声明于方法名之前
 - 调用：泛型方法调用不用指定类型，编译器智能推断
 
 ## 泛型约束
@@ -834,9 +1117,9 @@ obj.javaClass：运行时对象类型
 
 默认泛型**类**的**父子类关系** 与 泛型**元素**的父子关系 **无关**。同Java
 
-`out`：协变，将泛型类型作为函数输出（生产）。
+`out`：协变，泛型作为函数输出（生产）。**只读不写**，限上界泛型属于哪个类的子类。同java `<? extend XXX>`
 
-`in`：逆变，只将泛型类型作为函数输入参数（消费）。
+`in`：逆变，泛型作为函数输入（消费）。**只写不读**，限下界泛型属于哪个类的父类.同`java <? superXXX>`
 
 ```kotlin
 class MagicBox<T>(item:T){
@@ -851,43 +1134,42 @@ class MagicBox<T>(item:T){
 }
 ```
 
-![image-20210827160845281](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827160845281.png)
-
 ## 泛型擦除
 
-
+类型安全检查在编译时进行，运行时类型信息被擦除。禁止**`is`**监测
 
 # 扩展
 
-扩展属性和扩展函数的本质是以静态导入的方式来实现的
+扩展类的新功能**无需继承类**(装饰器模式)，扩展属性和扩展函数的本质是以静态导入的方式来实现的
 
-**`this`**：函数调用(接受)者
-
-可以新建一个公共源文件，把自定义的扩展属性和扩展函数都放到包中，作为一个通用工具类来使用。
+- **接收者**：被扩展的对象。使用`this`访问
+- 没有增加类的成员
+- 新建<u>公共顶层源文件</u>，扩展属性、函数都放到<u>包</u>中，作为<u>工具类</u>，使用时`import`
 
 ## 扩展函数
-
-扩展在**不直接修改类定义的情况下增加类功能**，扩展可以用于自定义类，也可以用于比如List、String，以及Kotlin标准库里的其他类。和继承相似，扩展也能共享类行为，在你无法接触某个类定义，或者某个类没有使用open修饰符，导致你无法继承它时，扩展就是增加类功能的最好选择。
 
 `fun <T/E...> 类名 . 扩展方法名 (... )  ：返回类型 {}`
 
 **支持泛型**扩展函数
 
+支持对`Any?`的扩展
+
 ```kotlin
-fun string. addExt(amount : Int = 1)={
+fun String. addExt(amount : Int = 1)={
 	this +"!". repeat (amount)
 }
 fun main(){
 	println
 }
-fun <T>T.easyPrint()={}
+//支持泛型
+fun <T> T.easyPrint()={}
 ```
 
 ## 扩展属性
 
 `val 类名.属性名 ：返回类型 +get/set`
 
-扩展属性允许定义在类或者Kotlin文件中，不允许定义在函数中
+**不能初始化，只能显式通过get/set定义**
 
 # kotlin和java互操作
 
@@ -895,7 +1177,7 @@ fun <T>T.easyPrint()={}
 
 kotlin运行时kotlin基本类型(引用)会映射成java基本数据类型
 
-Java可能返回null       声明!平台类型配合 ?. 
+Java可能返回null       声明**! 平台类型**便于表示，配合 ?. 
 
 无需调用get/set方法
 
@@ -915,14 +1197,36 @@ Java可能返回null       声明!平台类型配合 ?.
 
 匿名函数处理：kotlin编译器转换成FuncationN接口，使用代理/反射调用。（N为参数个数，从0开始)
 
-# 包级函数
+# 协程Coroutine
 
-不在类内，文件顶层
+可看作用户态轻量级线程。将**异步+回调**的**复杂写法**，抽象为顺序**串行**的表达，**底层库处理异步性**。适用于IO密集型、嵌套回调、并发编程。
 
-# 流操作
+协程要维护**局部的上下文**，重新进入上次挂起的位置，上下文恢复不变
 
-# 协程
+协程**挂起**suspend**不会阻塞线程**，几乎无代价，完全由程序控制，无需OS干预，
 
-![image-20210827193301589](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827193301589.png)
+## 开启协程
 
-![image-20210827193908156](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210827193908156.png)
+`launch(context，start，block)：Job`  **不阻塞当前线程**，启动**新**协程。返回持有协程引用的**Job**后台任务
+
+`context`：协程上下文 。通常是`CommonPool`共享线程池(ForkJoinPool优先使用，如不可则创建普通线程池)
+
+ `start` ：启动选项  默认 CoroutineStart.Default
+
+`block`：业务代码块，suspend修饰
+
+### Job状态
+
+| 状态                       | isActive | isCompleted |
+| -------------------------- | -------- | ----------- |
+| New新建(可选的初始状态)    | ❌        | ❌           |
+| Active活动中(默认初始状态) | ✔        | ❌           |
+| Completed已结束(最终状态)  | ❌        | ✔           |
+
+
+
+## 挂起函数
+
+**`suspend`**修饰，只能在**协程内部使用**，不能使用Thread启动
+
+delay(L):挂起协程，不会阻塞当前线程。挂起时，线程回收到池中；结束挂起，在池中空闲的线程恢复执行

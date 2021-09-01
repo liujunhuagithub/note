@@ -316,7 +316,7 @@ mapOf(Pair ( "Jimmy " ,20),Pair ( "Jack,20))
 
 ### Sequence序列
 
-① sequenceOf()   ② generate Sequence()  ③ sequence()+yield()
+① sequenceOf()    ② generate Sequence()  ③ sequence()+yield()   ④list.asSequence( )
 
 Sequence：每个**元素**逐个通过Stream**整条计算链**，**没有中间集合**。**惰性**计算。同java Stream
 
@@ -693,7 +693,7 @@ str=str?.let{
 - **`.apply()`**：执行**无参**lambda函数，返回**调用/接受者本身**。常用于设置对象选项(如配置文件)
 - **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。参数时调用者本身(内部的this)。
 - **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。参数时调用者本身(内部的this)。
-- .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**
+- .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**。
 - takeIf：根据lambda的布尔结果决定返回接收者对象还是null
 - 支持执行函数引用    **: :具名函数名**
 - `?.let`  和 `.let` 不同。前者null不执行，后者null会报错
@@ -798,7 +798,7 @@ var age=10
 
 ### lateinit延迟初始化
 
-**`lateinit`**提示编译器，该field会在使用前通过**其他逻辑显式赋值**，而非kotlin对象初始化机制。不建议使用，可能出错
+**`lateinit`**提示编译器，该field会在使用前通过**其他逻辑显式赋值**，而非kotlin对象初始化机制。不建议使用，可能出错。只能`var`
 
 ### by lazy{ value}惰性初始化
 
@@ -808,7 +808,7 @@ var age=10
 
 懒加载**代码块只有首次初始化才执行**，**之后直接返回最终结果**，不会执行代码块
 
-**默认**线程加**同步锁**synchronized，LazyThreadSafetyMode.PUBLICATION多线程计算
+**默认**线程加**同步锁**synchronized，LazyThreadSafetyMode.PUBLICATION多线程计算。NONE不做任何线程安全
 
 ```kotlin
 classPlayer5(_name : string)i
@@ -1171,6 +1171,18 @@ fun <T> T.easyPrint()={}
 
 **不能初始化，只能显式通过get/set定义**
 
+
+
+# 元编程
+
+## 类信息KClass
+
+kotlin不同于java，类元信息是`KClass`
+
+获取KClass：`ClassName : : class`
+
+`KClass.java`------->Class              `Class.kotlin`------>KClass
+
 # kotlin和java互操作
 
 ## kotlin调用java
@@ -1181,7 +1193,7 @@ Java可能返回null       声明**! 平台类型**便于表示，配合 ?.
 
 无需调用get/set方法
 
-java的getClass改为kotlin的  `ClassName: : class.java`或 `object. javaClass`
+java的getClass改为kotlin的  `ClassName : : class.java`或 `object. javaClass`
 
 ## java调用kotlin
 

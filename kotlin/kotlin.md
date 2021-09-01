@@ -1181,6 +1181,8 @@ Java可能返回null       声明**! 平台类型**便于表示，配合 ?.
 
 无需调用get/set方法
 
+java的getClass改为kotlin的  `ClassName: : class.java`或 `object. javaClass`
+
 ## java调用kotlin
 
 在kotlin注解，生成便于java理解的字节码

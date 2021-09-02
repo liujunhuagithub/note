@@ -194,7 +194,7 @@
 # WebSocket开发
 
 1. 注入ServerEndpointExporter bean
-2. ① 通过注解@ServerEndpoint来声明实例化WebSocket服务端。
+2. ① 通过注解@ServerEndpoint来声明实例化WebSocket服务端。==**多例**==，注入依赖需注意
    ② 通过注解@OnOpen、@OnMessage、@OnClose、@OnError 来声明回调函数
 
 # 任务调度

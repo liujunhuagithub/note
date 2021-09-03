@@ -4,7 +4,7 @@ Java NIO:**同步非阻塞**，面向**缓冲区**(块)、基于**通道**的IO�
 
 BIO：流阻塞线程，即使没有数据传输也阻塞等待
 
-一个线程从某通道发送请求或者读取数据，仅能得到目前可用的数据，如果没有数据传输，不会空等而是返回null去做其他事情，不阻塞线程。非阻塞写也是如此，一个线程请求写入一些数据到某通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。
+一个线程从某通道发送请求或者读取数据，仅能得到目前可用的数据，如果**没有数据传输，不会空等而是返回null去做其他事情，不阻塞线程**。非阻塞写也是如此，一个线程请求写入一些数据到某通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。真正传输数据时，会因为从OS得到数据而阻塞
 
 Channel**双向**，可读写，可移动，可异步
 
@@ -20,15 +20,32 @@ APP必须通过Buffer处理Channel，Channel是连接数据源和Buffer的桥梁
 
 ![image-20210902102523298](image-20210902101524050.png)
 
+
+
+![img](c6a30bf0145c5cefb8f3c63f7891c579.png)
+
+
+
+![img](7de8554b35f53bfb4b4d98713825d8fb.png)
+
 # Buffer
 
-可读写、可前后移动。联系Channel和APP的桥梁
+可读写、可前后移动。联系Channel和APP的桥梁，**线程不安全**
 
 ## 类型
 
 基本数据类型(无BooleanBuffer，无StringBuffer)，通常时`ByteBuffer`。本质上时数组
 
 wrap([])：将普通数组包装为缓冲区
+
+
+
+ByteBuffer大小分配
+·每个channel都需要记录可能被切分的消息，因为ByteBuffer 不能被多个channel共同使用，因此需要为每个channel维护一个独立的 ByteBuffer
+ByteBuffer 不能太大，比如一个ByteBuffer 1Mb的话，要支持百万连接就要1Tb内存，因此需要设计大小可变的 ByteBuffer
+。一种思路是首先分配一个较小的buffer，例如4k，如果发现数据不够，再分配8k的buffer，将4kbuffer内容拷贝至8k buffer，优点是消息连续容易处理，缺点是数据拷贝耗费性能
+
+另一种思路是用多个数组组成buffer，一个数组不够，把多出来的内容写入新的数组，与前面的区别是消息存储不连续解析复杂，优点是避免了拷贝引起的性能损耗
 
 ### 直接字节缓冲区
 
@@ -88,7 +105,8 @@ Channel**双向**，可读写，可移动，可异步。直接作用于源，连
 
 ## 类型
 
-- FileChannel：读写文件。**不支持注册selector**
+- FileChannel：读写文件。
+  - 只能工作在阻塞模式，**不支持注册selector**
   - RandomAccessFile可读写/FileInputStream只读/FileOutStream/只写   `.getChannel()`
   - 仅FileChannel支持`transformTo`：Channel之间传输
   - 内存映射文件：将文件映射入虚拟内存
@@ -99,7 +117,7 @@ Channel**双向**，可读写，可移动，可异步。直接作用于源，连
 
 buffer写入Channel，要flip切换为get访问模式
 
-可设置阻塞/非阻塞模式，非阻塞模式支持注册Selector
+可设置阻塞/非阻塞模式：accept是否阻塞等待数，非阻塞返回null。非阻塞模式支持注册Selector
 
 ## 读写
 
@@ -220,7 +238,7 @@ selectionKeyit.remove();
 - SelectionKey
   - channel()方法,返回与该键对应的通道
   - selector()方法，返回通道注册的选择器
-  - cancel()方法,终结这种特定的注册关系
+  - cancel()方法,终结这种特定的注册关系。断开连接需要调用
   - isvalid()方法判断注册关系是否有效
   - interestOps()方法返回你关心的操作，是以整数的形式进行编码的比特掩码,可以使用位运算检查所关心的操作
   - isReadable()), isWritable(), isConnectable(), isAccetable()等方法检测操作是否就绪
@@ -243,3 +261,5 @@ Asynchronousserversocketchannel
 AsynchronousFi1echannel
 
 AsynchronousDatagramchannel
+
+AIO引入异步通道的概念，采用了Proactor模式，简化了程序编写，有效的请求才启动线程，它的特点是先由操作系统完成后才通知服务端程序启动线程去处理,一般适用于连接数较多且连接时间较长的应用

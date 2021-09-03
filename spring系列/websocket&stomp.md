@@ -6,16 +6,16 @@
 2. WebSocket 是底层协议，SockJS 是WebSocket 的模拟兼容方案，也是底层协议；而 STOMP 是基于 WebSocket（SockJS） 的上层通讯协议
 3. SockJS 会优先选择 WebSocket 协议，通常引入sockJs包。
 
-##Stomp
+## Stomp
 
 1. STOMP在WebSocket之上提供了一个基于帧的线路格式（frame-based wire format）层，用来定义消息的语义。可以能路由信息到指定消息地点、直接使用成熟的STOMP代理进行广播 如:RabbitMQ, ActiveMQ。
-2. STOMP帧由命令、一个或多个头信息以及负载所组成：![](E:\学习总结\spring系列\stomp帧.jpg)
+2. STOMP帧由命令、一个或多个头信息以及负载所组成：![](stomp帧.jpg)
 
 # springboot-WebSocket
 
-##Spring抽象
+## Spring抽象
 
-1. WebSocketHandler接口是消息处理器（单例Singleton），WebSocketSession是底层Session的高层抽象![](E:\学习总结\spring系列\WebSocketHandler体系.jpg)
+1. WebSocketHandler接口是消息处理器（**单例**Singleton），WebSocketSession是底层Session的高层抽象![](WebSocketHandler体系.jpg)
 
 2. 握手处理HandshakeHandler.doHandshake(request,response,wshandler,attributes) --->DefaultHandshakeHandler，一般它就足够无需复写。
 
@@ -93,11 +93,13 @@
    }
    ```
 
-2. @ServerEndpoint设路径,@OnOpen连接建立,@OnClose连接关闭,@OnError连接错误,@OnMessage收到信息
+2. @ServerEndpoint设路径,@OnOpen连接建立,@OnClose连接关闭,@OnError连接错误,@OnMessage收到信息。@PathParam路径遍历
 
-3. @ServerEndpoint是Prototype，其成员变量分别属于对应session。**每建立新连接自动创建对应的新对象**
+3. 参数支持Session、EndpointConfig
 
-4. spring代码
+4. ==@ServerEndpoint是**Prototype多例**==，**每建立新连接自动创建对应的新对象**。@Autowire时需要设置static，间接注入其他位置，获取引用为其赋值。或getBean()
+
+5. spring代码
 
    ```java
    @Component
@@ -161,7 +163,7 @@
 
 ## 结构体系
 
-![stomp结构图](E:\学习总结\spring系列\stomp结构图.png)
+![stomp结构图](stomp结构图.png)
 
 1. ApplicationDestinationPrefixes：发往@MessageMapping的前缀，一般/app；UserDestinationPrefix：一对一发送前缀，默认/user；Broker：消息代理队，SimpleBroker基于内存的简单代理，可利用rabbilmq
 

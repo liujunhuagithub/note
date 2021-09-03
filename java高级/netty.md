@@ -310,6 +310,10 @@ I/O 线程一定不能阻塞，禁止任何直接阻塞操作在 ChannelHandler
 
 ##### 常用Handler
 
+###### ChannelInitializer
+
+用于设置ServerBoostrap的childHandler，可设置pipline
+
 ###### 编码解码器
 
 基类名字类似 ByteToMessageDecoder 或 MessageToByteEncoder。所有的编码器/解码器适配器类 都实现自 ChannelInboundHandler 或ChannelOutboundHandler。

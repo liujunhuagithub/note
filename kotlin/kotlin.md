@@ -22,7 +22,7 @@ kotlin不能和java语法混合，groovy可以
 
 ![image-20210828101151335](image-20210828101151335.png)
 
-<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210825105631637.png" alt="image-20210825105631637" style="zoom:50%;" />
+<img src="image-20210825105631637.png" alt="image-20210825105631637" style="zoom:50%;" />
 
 # 基本语法
 
@@ -38,7 +38,7 @@ kotlin不能和java语法混合，groovy可以
 
 - kotlin**一切都是类/对象**，包括java的void和函数，对应为**Unit**、**(形参类型...)->返回值类型**
 
-- **`_`**下划线：不适用变量。用于lambda函数声明、解构赋值
+- **`_`**下划线：不适用变量。用于lambda函数声明不使用的参数、解构赋值
 
 - 常量
   - **`val`** 常量：只能赋值一次，可以**先声明后赋值，但只能赋值一次**
@@ -46,7 +46,7 @@ kotlin不能和java语法混合，groovy可以
     - 尽量使用val常量，线程安全
   - **`const val`编译期常量**：  必须**初始化赋值**(编译时赋值)
     - **编译时赋值**
-    - 只能在**函数外定义**(函数执行时才赋值)
+    - 位于顶层或者是 *object* 声明或 companion object的一个成员
     - <u>类型**只能**是常见的**基本数据类型**</u>：数字、String、Boolean
     - 同java： `public final static Class v=XXX` (初始化赋值全部搞定)
   
@@ -57,7 +57,7 @@ kotlin不能和java语法混合，groovy可以
   
 - Kotlin系统类型**分为可空类型和不可空类型**，两者往往存在继承关系。编译期强制检查
 
-- **`as`**导入包起别名消除歧义
+- **`as`**导入包起别名消除歧义。包名和源文件路径无需一致，可任意放置。未指定包名则为无名默认包
 
 - 多线程：@Volatile   @Synchronized用于多线程变量/函数
 
@@ -71,20 +71,20 @@ kotlin不能和java语法混合，groovy可以
   - **`? .`**安全调用/访问：**源对象为null直接返回**，终止调用/访问
   - **`? : 表达式/语句`**   Elvis  简化的<u>判空</u>表达式。<u>接收者**==null**执行表达式</u>
   - **`?.let ( 单参有返回值函数 )`**：<u>接收者**=nul**</u>不执行，！=null才会执行。`. let`=null报错
-  - **`! !.`**    :非null断言，接收者=null则抛出异常 `KotlinNullPointerException`，慎重使用
-  - *
+  - **`! !`**    :非null断言，接收者=null则抛出异常 `KotlinNullPointerException`，慎重使用
 - 判断
 
   -  **`==`** ：同java **`equals( )`**
--  `===`：引用相等，同java ==
+  -  `===`：引用相等，同java ==
   -  判空操作和java一样  **! = null / == null**
+  -  null===null
 -  **`in`**：是否range/array/list元素
   -  **`is   !is`**  ：判断对象是否是指定类实例。同java instanceof。
   -  智能类型转换：变量**无需强转类型转换**即可调用新类型方法，**只能子转父**。不安全需要显式转换
     -  **`as`**：强制类型转换，<u>失败**抛出异常**</u>
     -  **`as ?`**：强制类型转换，<u>失败返回**`null`**</u>。注意变量声明必须允许null (**?**)
     -  ==**父类是禁止转换为子类型的**==
-- 解构赋值：**`var ( narName ... )=支持解构的变量`**。**`__`**下划线跳过某变量
+- 按顺序解构赋值：**`var ( narName ... )=支持解构的变量`**。**`__`**下划线跳过某变量
   - `componentN( )`：用于对象解构，常用于数据类，N为 1 - 无穷大
 
 ```kotlin
@@ -131,13 +131,13 @@ kotlin无受检查异常，**所有异常无需强制处理**。支持try-resour
 
 ### 自定义异常
 
-继承Throwable类或其子类
+继承`Throwable根异常`类或其子类
 
 ```kotlin
 class UnskilledException () : IllegalArgumentException("操作不当")
 ```
 
-**`TODO( " reson " )`**：抛出异常 `NotImplementedError`,终止运行，返回`Nothing`
+**`TODO( " reson " )`**：抛出异常 `NotImplementedError`,终止运行，返回**`Nothing`**
 
 Java中有两种异常类型，一种是受检异常（ checked exception)，一种是非受检异常(unchecked exception），在编写Java代码时，由于编译器在编译时会检查受检异常，因此IDEA会提示进行try...catch操作。受检异常显得比较麻烦，一直以来争议比较大，可能会导致Java API变得复杂，在编写代码时，需要进行大量的try...catch操作，而Kotlin中相比于Java没有了受检异常，IDEA也不会提示进行try...catch操作。
 
@@ -145,7 +145,7 @@ Java中有两种异常类型，一种是受检异常（ checked exception)，一
 
 kotlin内置的函数，类似assert，可校验关键逻辑
 
-![image-20210825164717066](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210825164717066.png)
+![image-20210825164717066](image-20210825164717066.png)
 
 ## 基本数据类型
 
@@ -155,7 +155,7 @@ java有基本数据类型和引用类型；
 
 kotlin编译器将：==**不可空基本类型、XXXArray原生数组编译为jvm基本类型；可空基本类型编译为包装类型装箱**==
 
-<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104432133.png" alt="image-20210828104432133" style="zoom: 67%;" />
+<img src="image-20210828104432133.png" alt="image-20210828104432133" style="zoom: 67%;" />
 
 ### 数字Int/Long/Float/Double/Byte/Short
 
@@ -168,8 +168,10 @@ Kotlin ==**<u>一切都要显式转换</u>**==。小数字类型**不能**隐式
 - 浮点和--->整数：toInt( )仅整数位   roundToInt( )四舍五入
 - 支持下划线分割
 - **`/`**  : 整数间的除法总是返回整数
-- 支持二进制和十六进制，不支持八进制
+- 支持二进制和十六进制，<u>不支持八进制</u>
 - *位运算没有符号表示*，只能简写表示
+- 编译器可推断的情况下，可隐式转换
+- 位运算只能函数操作`shl(bits)` `shr(bits)` `ushr(bits)` `and(bits)` `or(bits)``xor(bits)` `inv()` 
 
 ### Boolean
 
@@ -249,7 +251,7 @@ for ((index,i) in arr.withIndex ()){
 
 类都存放在kotlin.collections包
 
-支持解构赋值：**`var ( narName ... )=支持解构的变量`**
+支持按顺序解构赋值：**`var ( narName ... )=支持解构的变量`**
 
 **`*`**：可展开**数组**用于函数实参，==**<u>不支持集合</u>**==
 
@@ -337,7 +339,7 @@ Iterator：每个**计算步骤**依次处理**整个集合**，生成中间集�
 
 
 
-<img src="C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210828104831368.png" alt="image-20210828104831368" style="zoom:50%;" />
+<img src="image-20210828104831368.png" alt="image-20210828104831368" style="zoom:50%;" />
 
 ### 常用集合处理函数
 
@@ -470,7 +472,7 @@ fun maxOf(a: Int, b: Int) = if (a > b) a else b
 
 ### when表达式 : 是switch的加强
 
-针对表达式的不同值匹配不同分支，**无需显示break**(即自动break)
+针对表达式的不同值匹配不同分支，**无需显示break**(即自动break)，只匹配第一个满足条件的
 
 匹配条件为Boolean可省略括号
 
@@ -538,9 +540,9 @@ fun Request.getBody() =
 
 常用于函数嵌套时，**跳出内层lambda函数的当前循环**，继续循环下一次迭代。(类似continue，没有break)
 
-显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受lambda函数的方法同名
+显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受lambda函数的方法同名`return@labelName`
 
-`return@labelName`
+**无标签：整个父函数结束**
 
 ```kotlin
 fun foo(){
@@ -550,6 +552,34 @@ ints.forEach lit@{
 }
 
 ```
+
+## 返回值
+
+- return@lamdba标签名：返回单个lambda，**继续下次流操作**(类似continue，没有break)
+- return：返回**上一层函数结果**
+- return@标签名：结束指定标签对应的函数体
+
+```kotlin
+fun foo() {
+    listOf(1, 2, 3, 4, 5).forEach(fun(value: Int) {
+        if (value == 3) return  // 继续流操作
+        print(value)
+    })
+    print(" done with anonymous function")
+}
+
+fun foo() {
+    run loop@{
+        listOf(1, 2, 3, 4, 5).forEach {
+            if (it == 3) return@loop // 结束loop对应的函数体
+            print(it)
+        }
+    }
+    print(" done with nested loop")
+}
+```
+
+
 
 # 函数
 
@@ -562,6 +592,8 @@ Kotlin中函数可以有普通的定义方式、可以用表达式函数体、�
   - 必须写`return`，具名函数的返回值不能智能推断
 - 函数执行**默认接受非null实参**，函数形参明加<u>**`？`**可接受null实参</u>
 - 支持**默认参数**、**具名参数**、**可变参数 `vararg`**
+  - 在调用 Java 函数时不能使用具名参数语法，因为 Java 字节码并不总是保留函数参数的名称。
+  - 默认参数支持简单表达式
 - 具名函数中：**单个表达式作为函数体**，**不用`{ }`**包裹，无须指定返回值(**类型自动推断**)。
 - 入口函数可无参数，名字必须是`main`
 - **\` \` 反引号**：函数名含**特殊字符**(空格、<u>关键字</u>)，<u>声明</u>、<u>调用</u>时反引号包裹。解决java/kotlin互调关键字冲突
@@ -578,15 +610,16 @@ fun sum(a:Int , b:Int):Int=a+b
 
 ### 修饰符
 
-访问修饰符：无指定**默认public**，支持private
+- 访问修饰符：无指定**默认public**，支持private
 
-**`inline`** 内联函数：针对lambda函数，编译器将函数体复制每个调用处
-
-**`tailrec`**尾递归优化：优化该尾递归函数，将尾递归函数转化为while循环，无栈溢出风险
+- **`inline`** 内联函数：针对lambda函数，编译器将函数体复制每个调用处
+  - `noinline`：不内联的函数，常修饰禁止 参数为函数类型的 形参
+- **`tailrec`**尾递归优化：优化该尾递归函数，将尾递归函数转化为while循环，无栈溢出风险
+  - 不能用在 try/catch/finally 块
 
 ## 匿名/lambda函数
 
-**`var`**：==**匿名函数作为变量，变量类型 ： <u>(形参类型 ...) -> 返回值类型</u>**==，由声明时指定。常用于函数式编程和闭包
+**`var`**：==**匿名函数作为变量，变量类型 ：[接收器类型] . <u>(形参类型 ...) -> 返回值类型</u>**==，由声明时指定。常用于函数式编程和闭包
 
 - 类型定义：
 
@@ -595,13 +628,15 @@ fun sum(a:Int , b:Int):Int=a+b
       - **`var 接收者.varName:(argType...) -> 返回类型 = {varName ... -> 语句块 }`**   ：接收者作为this
     - lambda内<u>仅一个参数：可省略参数定义</u>，**`it`**是隐含参数名，同groovy
     - 常用于stream/lambda运算
+    - 接收器相当于隐含的形参this  (A, B) -> C等同于A.(B) -> C
   - 自动推断：**`var varname=  {varName :Type ...->语句块}`**
     - 变量可自动推断*函数签名类型*时，可省略类型声明
     - 常用于闭包写法、返回函数类型
+  - 函数体中**变量声明没有括号**
 
 - ==<u>语句块**不用 { }再次包裹**，返回值、类型是由最后一条语句决定。不能指定return语句</u>==
 
-- 函数体中**变量声明没有括号**
+- 函数调用支持 `函数名.invoke(参数...)`
 
 - lambda为函数调用时的**参数在末尾**，语句块可写在外面；**只有一个参数，括号可省略**。类似**<u>groovy闭包</u>**
 
@@ -618,15 +653,19 @@ fun sum(a:Int , b:Int):Int=a+b
 
 **`inline`** 内联：kotlin编译器提供针对lambda对象产生额外内存开销的问题，提供特殊优化机制。类似C的宏替换 。编译器将匿名函数体复制粘贴到每个函数调用处。
 
-函数参数也会随之内联，参数有Lambda表达式时，Lambda表达式便不是一个函数的对象，从而也就无法当作参数来传递。使用`noline`修饰参数，禁止内联
-
-不用内联复杂函数
+函数参数也会随之内联，使用`noline`修饰参数，禁止内联
 
 **lambda递归函数不能内联**，宏替换无限循环，编译会发出警告
 
+```kotlin
+inline fun foo(inlined: () -> Unit, noinline notInlined: () -> Unit) {  }
+```
+
+
+
 ### 函数引用
 
-**`：：具名`**(双冒号)： 具名函数----->实参，进行函数式编程。
+**`：：具名`**(双冒号)： 具名函数----->实参，进行函数式编程。顶层函数无需类名
 
 ### infix中缀表示
 
@@ -683,17 +722,17 @@ str=str?.let{
 
 在Standard类中的方法都可以通过`return@方法名`这种格式结束当前方法
 
-**高阶函数内部this：调用者**。外部的this：调用者代码所在对象
+**高阶函数lamdba内部this：调用者**。**外部的this：调用者代码所在对象**
 
 调用者(接受者)：调用/接受lambda函数的对象
 
-![image-20210826170959977](C:/Users/LiuJH/AppData/Roaming/Typora/typora-user-images/image-20210826170959977.png)
+![image-20210909155852256](image-20210909155852256.png)
 
-- run()：执行**无参**lambda函数，返回该**lambda执行结果**
-- **`.apply()`**：执行**无参**lambda函数，返回**调用/接受者本身**。常用于设置对象选项(如配置文件)
-- **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。参数时调用者本身(内部的this)。
-- **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。参数时调用者本身(内部的this)。
-- .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**。
+- run()：执行**无参**lambda函数，返回该**lambda执行结果**。支持this
+- **`.apply()`**：执行**无参**lambda函数，返回**调用/接受者本身**。常用于设置对象选项(如配置文件)，支持this
+- **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。不支持this
+- **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。不支持this
+- .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**，支持this
 - takeIf：根据lambda的布尔结果决定返回接收者对象还是null
 - 支持执行函数引用    **: :具名函数名**
 - `?.let`  和 `.let` 不同。前者null不执行，后者null会报错
@@ -740,7 +779,7 @@ get可见性与属性本身声明一致，set可有独立可见性
   - 声明方式：
     - 位于**<u>类声明后</u>** `class 类名 [ constructor ] (形参:Type...){}`+**`init{ }/初始化赋值/var声明`**。没有其他修饰符可省略constructor。
     - **`init{ }`**：完全自定义构造函数执行逻辑，支持**`this`**，可访问主构造参数。
-    - 构造函数<u>形参变量名</u>可直接初始化赋值给field。一般**`_`**下划线开头的与<u>field同名</u>可自动匹配
+    - 构造函数<u>形参变量名</u>可直接初始化赋值给field。一般**`_`**下划线开头的与<u>field同名</u>
     - **`var/val`** 声明构造**形参**，不用在类体专门书写field。val只有get没有set
   - **<u>未显式声明则默认生成 public无参主构造函数</u>**
 - **多个次**构造函数
@@ -796,9 +835,9 @@ var age=10
 	}
 ```
 
-### lateinit延迟初始化
+### lateinit var延迟初始化
 
-**`lateinit`**提示编译器，该field会在使用前通过**其他逻辑显式赋值**，而非kotlin对象初始化机制。不建议使用，可能出错。只能`var`
+**`lateinit var`**提示编译器，该field会在使用前通过**其他逻辑显式赋非null值**。只能`var`
 
 ### by lazy{ value}惰性初始化
 
@@ -823,14 +862,12 @@ classPlayer5(_name : string)i
 
 ### typealias类型别名
 
-`typealias  新名称=旧名称`。支持泛型、函数
+`typealias  新名称=旧名称`。支持**泛型**、函数类型
 
 ```kotlin
 typealias  HH=Set<String>
 typealias Predicate<T>=(T)->Boolean
 ```
-
-
 
 ## 继承
 
@@ -876,7 +913,7 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 }
 ```
 
-#### 函数式接口
+#### 函数式接口 fun interface
 
 只有一个抽象方法，用于**创建lambda实例**。常用于java转kotlin。kotlin有函数类型，所以函数式接口不常用
 
@@ -908,6 +945,7 @@ fun main() {
 内部类：`inner`修饰，**可以访问外部类成员**。同java <u>成员内部类</u>
 
 - 内部类访问外部类：**`this@外部类名 . 外部成员`**
+- 内部类访问外部类的<u>父类</u>：**`super@外部类名 . 外部成员`**
 
 ## 特殊类
 
@@ -917,18 +955,20 @@ fun main() {
 
 可实现接口，不能继承类。
 
-每个枚举常量都有`name`、`ordinal`
+每个枚举常量都有`name`、`ordinal`，实现 Comparable接口， 其中自然顺序是定义的顺序
 
 ```kotlin
 枚举类名.valueOf("常量名")  //获取某常量实例
 枚举类名.values() //所有枚举常量
+enumValues<T>() 	//函数以泛型的方式访问枚举类中的常量 
+enumValueOf<T>() 
 ```
 
 ### sealed密封类
 
-限制取值，只能取声明的值。不同于枚举类，密封类子类可**有多个实例**
+限制类继承解构，只能取声明的类。不同于枚举类，密封类子类可**有多个实例**
 
-密封类的构造函数private，因此密封类的**子类**只能**定义**在密封类的**内部**或者**同一个文件**
+密封类自身是*abstract*、构造函数非public。密封类的**子类**只能**定义**在密封类的**内部**或者**同一个文件**
 
 密封类的间接继承子类可以声明在其他文件中。
 
@@ -965,7 +1005,7 @@ fun eval(expr: Expr): Double = when(expr) {
 
 #### `object`  单例对象
 
-访问方式：`ClassName.varName`**不需要创建该类的实例对象**，默认创建了该类的单例对象
+访问方式：`ClassName.varName`**不需要创建该类的实例对象**，默认创建了该类的单例对象。**延迟初始化**
 
 可用于书写Utils类
 
@@ -981,7 +1021,7 @@ object Singleton {
 
 #### 单例对象表达式(同java匿名内部类)
 
-生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类。常用于注册监听。`this`对象本身`this@外部类名`
+生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类。常用于注册监听。`this`对象本身`this@外部类名`，**立即初始化实例**
 
 **可修改外部变量**，与java不同
 
@@ -1028,11 +1068,23 @@ ConfigMap.load ()
 }
 ```
 
+#### 内联类  value+@JvmInline
+
+内联类有**唯一成员属性**在**主构造函数**中初始化。在运行时，将使用这个唯一属性来表示内联类的实例
+
+不能有`init`代码块
+
+只能实现接口，不能继承类
+
 ## by委托
 
 ### 类委托
 
-一个是委托类，一个是被委托类。在委托类中并没有真正的功能方法，该类的功能是通过调用被委托类中的方法实现的。把所有方法委托给`by后的指定对象`
+一个是委托类，一个是被委托类。都实现相同接口
+
+在委托类中并没有真正的功能方法，该类的功能是通过调用被委托类中的方法实现的。把所有方法委托给`by后的被委托对象`
+
+委托对象的成员 只能访问 其实现的接口函数
 
 ```kotlin
 interface Base {
@@ -1060,7 +1112,7 @@ fun main() {
 
 ### 属性委托
 
-一个类的某个属性值不是在类中直接进行定义，而是将其委托给一个代理类，从而实现对该类的属性进行统一管理。
+一个类的某个属性值不是在类中直接进行定义，而是将其委托给一个代理类，从而实现对该类的属性进行统一管理。支持引用方法
 
 ```kotlin
 class Example {
@@ -1078,7 +1130,55 @@ class Delegate {
 
 val e = Example()
 println(e.p)
+
+class MyClass(var memberInt: Int, val anotherClassInstance: ClassWithDelegate) {
+    var delegatedToMember: Int by this::memberInt
+    var delegatedToTopLevel: Int by ::topLevelInt
+    
+    val delegatedToAnotherClass: Int by anotherClassInstance::anotherClassInt
+}
+var MyClass.extDelegated: Int by ::topLevelInt
 ```
+
+### Observable
+
+`Delegates.observable(初始值，handler)`每当给属性赋值时会调用该处理程序（在赋值*后*执行），它有三个参数：被赋值的属性、旧值与新值：
+
+```kotlin
+
+class User {
+    var name: String by Delegates.observable("<no name>") {
+        prop, old, new ->
+        println("$old -> $new")
+    }
+}
+
+fun main() {
+    val user = User()
+    user.name = "first"
+    user.name = "second"
+}
+```
+
+### map<varName,value>转换
+
+```kotlin
+class User(val map: Map<String, Any?>) {
+    val name: String by map
+    val age: Int     by map
+}
+val user = User(mapOf(
+    "name" to "John Doe",
+    "age"  to 25
+))
+
+class MutableUser(val map: MutableMap<String, Any?>) {
+    var name: String by map
+    var age: Int     by map
+}
+```
+
+
 
 ## operator运算符重载
 
@@ -1136,13 +1236,13 @@ class MagicBox<T>(item:T){
 
 ## 泛型擦除
 
-类型安全检查在编译时进行，运行时类型信息被擦除。禁止**`is`**监测
+类型安全检查在编译时进行，运行时类型信息被擦除。禁止**`is`**检测
 
 # 扩展
 
 扩展类的新功能**无需继承类**(装饰器模式)，扩展属性和扩展函数的本质是以静态导入的方式来实现的
 
-- **接收者**：被扩展的对象。使用`this`访问
+- **接收者**：被扩展的对象本身。使用`this`访问
 - 没有增加类的成员
 - 新建<u>公共顶层源文件</u>，扩展属性、函数都放到<u>包</u>中，作为<u>工具类</u>，使用时`import`
 
@@ -1150,7 +1250,7 @@ class MagicBox<T>(item:T){
 
 `fun <T/E...> 类名 . 扩展方法名 (... )  ：返回类型 {}`
 
-**支持泛型**扩展函数
+**支持泛型**扩展函数、支持伴生对象扩展
 
 支持对`Any?`的扩展
 
@@ -1163,13 +1263,16 @@ fun main(){
 }
 //支持泛型
 fun <T> T.easyPrint()={}
+//支持伴生对象扩展
+fun MyClass.Companion.printCompanion() { println("companion") }
+
 ```
 
 ## 扩展属性
 
 `val 类名.属性名 ：返回类型 +get/set`
 
-**不能初始化，只能显式通过get/set定义**
+**不能有默认值，只能显式通过get/set定义**
 
 
 
@@ -1210,286 +1313,3 @@ java的getClass改为kotlin的  `ClassName : : class.java`或 `object. javaClass
 `@Throws(checked exception.class)`：注解于**可能抛出java受检查异常**的**函数**中(java必须处理受检查异常，kotlin不用)
 
 匿名函数处理：kotlin编译器转换成FuncationN接口，使用代理/反射调用。（N为参数个数，从0开始)
-
-
-
-# 协程Coroutine
-
-可看作用户态轻量级线程。将**异步+回调**的**复杂写法**，抽象为顺序**串行**的表达，**底层库处理异步性**。适用于IO密集型、嵌套回调、并发编程。本质上还是回调
-
-**一个线程有多个协程，但同一时刻只有一个协程运行**
-
-协程要维护**局部的上下文**，重新进入上次挂起的位置，上下文恢复不变
-
-协程**挂起**suspend**不会阻塞线程**，几乎无代价，完全由程序控制，无需OS干预，
-
-挂起时，线程回收到池中；结束挂起，在池中空闲的线程恢复执行。使用**线程池模拟协程实现**
-
-## 开启协程
-
-### lanuch
-
-创建协程/子协程：`val v:Job=scope.launch(context，start，block) { }`  
-
-启动**新**协程，返回持有协程引用的**Job**任务。不指定则启动本作用域协程
-
-- 不指定scope和context，**默认**作为父的**子协程**
-- 返回的**Job没有包含返回值**
-- 可在`suspend`函数内启动
-
-**多个子协程并行运行，单个子协程内代码同步**
-
-##### Job状态
-
-| 状态                       | isActive | isCompleted |
-| -------------------------- | -------- | ----------- |
-| New新建(可选的初始状态)    | ❌        | ❌           |
-| Active活动中(默认初始状态) | ✔        | ❌           |
-| Completed已结束(最终状态)  | ❌        | ✔           |
-
-job.`join`( )：**协程域内显式**等待某job运行完毕，**期间挂起当前协程**，等待子协程运行完毕。**非阻塞线程**
-
-
-
-### async(suspend函数异步并行)
-
-默认`suspend`函数耗时操作**顺序串行**某些业务可并行，可改为异步操作
-
-`async (context，start，block) {}`：**创建子协程**，与其他协程**并行**，
-
-- 返回`Deferred`(Job子类，轻量级非阻塞可取消future) ，**包含结果**
-- 可在`suspend`函数内启动
-- 懒启动`start=CoroutineStart.LAZY`：协程不自动启动，只有 ①显式`start()` ②`await( )`才启动
-  - 仅await( )可能导致顺序**串行执行**
-
-`await()`：延期返回`async`的`suspend`函数运行完毕的结果。常常try-catch在此处处理异常
-
-#### 异步风格
-
-`GlobalScope.async {   }`：作为**普通函数**，非suspoend。任何地方使用。用于异步调用
-
-`runBlocking` 中阻塞主线程调用`await`返回结果
-
-#### Deferred状态
-
-| 状态           | isActive | isCompleted | isCompletedExceptionally | isCancelled |
-| -------------- | -------- | ----------- | ------------------------ | ----------- |
-| New可选初始    | ❌        | ❌           | ❌                        | ❌           |
-| Active默认初始 | ✔        | ❌           | ❌                        | ❌           |
-| Resolved       | ❌        | ✔           | ❌                        | ❌           |
-| Failed         | ❌        | ✔           | ✔                        | ❌           |
-| Cancelled      | ❌        | ✔           | ✔                        | ✔           |
-
-`isCompletedExceptionally`：执行异常、cancel
-
-`isCancelled`：任务取消
-
-
-
-### suspend挂起函数
-
-**`suspend`**修饰：执行**完毕自动恢复**resume，函数体**启动新协程**。常用于执行耗时操作
-
-kotlinx.coroutines内置，`delay`( ):**挂起协程**指定时间，**协程内使用**
-
-只能在**协程体**、**suspend函数**内调用。不能使用Thread启动
-
-
-
-## 协程配置
-
-- `context`：协程上下文 。显式的为一个新协程或其它上下文元素指定一个调度器
--  `start` ：启动选项  默认 CoroutineStart.Default
-- `block`：业务代码块，suspend修饰
-
-
-
-### 协程上下文CoroutineContext
-
-协程调度器：确定相应的协程使用哪个或哪些线程来执行。**默认无指定父协程上下文**
-
-Dispatchers是CoroutineContext的实现
-
-| 调度器CoroutineDispatcher      | 作用域                                            | 特点                                                         |
-| ------------------------------ | ------------------------------------------------- | ------------------------------------------------------------ |
-| Dispatcher.Unconfined          | 非受限调度器，继承父作用域                        | 仅仅只是运行到第一个挂起点。挂起后，它恢复回哪个线程执行，这完全由被调用的挂起函数来决定适用于更新UI线程、不占用CPU的任务 |
-| Dispatcher.Default             | 使用ForkJoin共享线程池，`GlobalScope`默认的调度器 | 计算型任务(解析数据)                                         |
-| Dispatcher.IO                  | 非主线程，使用ForkJoin共享线程池                  | 数据库、网络等IO                                             |
-| Dispatcher.Main                | UI主线程                                          | 更新UI、轻量级suspend                                        |
-| newSingleThreadContext("name") | 新建指定线程作用域                                |                                                              |
-
-各个Job子协程：从rou
-
-coroutineContext[ Job ]获取
-
-### 协程作用域CoroutineScope
-
-协程只能在**指定的CoroutineScope **中启动。
-
-结构化并发：多个分开的并发路径最终再次连接起来，使得符合因果关系。<u>不同CoroutineScope中的协程具有不同的声明周期</u>，能够控制内部协程的生命周期，可以取消内部所有协程
-
-- 创建作用域：`CoroutineScope(指定scope)`
-- 作用域特点：
-  - 能够控制内部协程的生命周期
-  - 可以取消内部所有协程
-  - 所有子协程完成后作用域才结束
-
-- cancel()：用于取消当前作用域，同时**取消作用域内所有协程**。
-
-#### 非协程环境启动
-
-- `GlobalScope.lanuch`：作为顶层协程(进程process级)，与启动的作用域独立无关，**没有父协程**。
-  - APP束时也会跟着一起结束。不会使进程保活，**如同守护线程**。不能取消
-  - 单例对象，含有一个空的上下文对象。使用Dispatcher.Default调度器
-  - 慎用
-- `runBlocking{ }`：**代码块阻塞**当前**线程**，直到**此协程体、子协程执行完毕**才继续执行runBlocking下面的，占用线程资源
-  - 主协程，只能启动其他并发的新协程，不能别其他协程启动。默认使用Dispatcher.Unconfined调度器
-  - 常规函数。用于桥接阻塞和非阻塞代码，很少使用
-  - 由于**本身阻塞**，故而代码**块内**的**挂起**操作**对域外**表现为**线程阻塞**
-- `某作用域.launch`：新建自定义域
-
-#### 协程内启动
-
-- `launch/async{ }`：**默认**不指定：继承父协程作用域，**作为父协程的并行子协程**
-  - 本身是普通函数，**父协程一直运行，不会挂起**
-- `coroutineScope{ }`自定义作用域构建器：创建新作用域，**并不启动协程**
-  - 本身是`suspend`函数，**父协程一直挂起**
-  - 用于将各种相互依赖**子任务组合为大的父任务**，用于自定义结构化并发
-  - **不阻塞线程**。释放线程资源
-- `withContext( scope) { }`：切换指定作用域运行，将长耗时操作从UI线程切走，完事再切回来
-  - 本身是`suspend`函数，**父协程一直挂起**
-  - 并不创建新协程
-
-```kotlin
-fun main() = runBlocking {
-    doWorld()
-}
-
-suspend fun doWorld() = coroutineScope {  // this: CoroutineScope
-    launch {
-        delay(1000L)
-        println("World!")
-    }
-    println("Hello")
-}
-```
-
-![image-20210831163854369](image-20210831163854369.png)
-
-#### 父子协程
-
-**默认不指定**CoroutineContext启动的协程则为子协程，指定其他作用域启动的新协程不是子协程
-
-==**父协程取消，子协程会递归地取消；**==
-
-==**子协程抛出异常`非CancellationException`不处理，整个父协程作用域都会被自动取消**==
-
-==**父协程/作用域自动等待  所有子协程、代码块运行完毕，才结束**==。其他作用域协程需显式join
-
-## 协程取消
-
-### cancel()
-
-`job.cancel( )`：取消协程。返回true，再次取消返回false
-
-协程处于**挂起suspend**状态才能**真正停止执行**，占用线程CPU资源仅仅状态改变取消
-
-`cancelAndJoin`：**cancel并join**，触发cancel并**等待计算任务**执行、`finally`完毕
-
-结束协程：return@launch
-
-**父协程取消，子协程会递归地取消；子协程抛出异常，整个父协程作用域都会被自动取消**
-
-| cancel状态       | isActive | isCompleted |
-| ---------------- | -------- | ----------- |
-| cancel前         | ✔        | ❌           |
-| cancel正在取消中 | ❌        | ❌           |
-| cancel完成       | ❌        | ✔           |
-
-![在这里插入图片描述](watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3pvdTg5NDQ=,size_16,color_FFFFFF,t_70)
-
-### 取消失效
-
-协程处于**非suspend**状态(**占用线程**资源)时`cancel`，仅仅**状态变化**，**不会真正停止执行**。
-
-- 构造**可取消协程**
-  - 协程业务代码**显式检查isActive**标志位，isActive=false则`return@launch`
-  - **循环**调用**yield**( )并捕获异常：**cancel后**(isCompleted=true)时自动**抛出**`CancellationException`
-- **父协程取消，子协程会递归地取消；**
-- `withTimeout( L)`：超时自动取消，抛出`TimeoutCancellationException`异常  。需要返回结果需**建立外部变量**在协程内部赋值，并finally关闭资源。`withTimeoutOrNull( L)`不报错返回null
--  `withContext(NonCancellable)`{ }内调用suspend函数不受cancel影响。`finally`不能直接调用`suspend`函数，此时协程已取消不会被调度执行。不常用
-
-```kotlin
-while (isActive) { // cancellable computation loop
-        if (System.currentTimeMillis() >= nextPrintTime) {
-            println("job: I'm sleeping ${i++} ...")
-            nextPrintTime += 500L
-        }
-    }
-if(!isActive) return@launch
-
-    while () { // cancellable computation loop
-        yield()
-        if (System.currentTimeMillis() >= nextPrintTime) {
-            println("job: I'm sleeping ${i++} ...")
-            nextPrintTime += 500L
-        }
-    }
-```
-
-### 异常处理
-
-**协程被cancel 时在挂起点`suspend`抛出`CancellationException`**
-
-#### 异常捕获
-
-- `launch`：kotlin默认**忽略**launch抛出的`CancellationException`，不输出此异常信息。用户无需关心
-- `async`：用户在**`await( )处`**自定义`try-catch`，kotlin**不会忽略**，输出此异常信息
-
-1. **子协程cancel产生的CancellationException, 不会影响父协程。**
-2. **子协程抛出非CancellationException异常不处理，父协程将会因异常而取消, 牵连父协程域内的所有子协程**
-
-## 多线程调度器并发
-
-协程可用多线程调度器（比如默认的 `Dispatchers.Default`）并发执行。这样就会有多线程中的并发问题
-
-@Volatile 声明共享同步变量   @Synchornized  同步函数
-
-
-
-## 同道Channel
-
-**协程间传输数据流**，**延时**等待数据`send( ) / receive( )`。suspend协程而非阻塞线程
-
-```kotlin
-val c=Channel<Int>()
-c.send(12)
-c.receive()
-for(i in c){ }//直到close
-```
-
-### 通道关闭
-
-close( )：相当于发送特别的令牌，重复调用无效。
-
-发送端isClosedForSend=true，接收端收到元素后isClosedReceive=true
-
-接受全部已发送的数据后接收端才关闭
-
-关闭后不能send / receive数据，否则报错
-
-### 生产者-消费者
-
-生产者抽象为以Channel为核心的**函数**，生产者**结果从函数返回**
-
-`produce( context,capacity缓存默认0,block)`
-
-**启动新协程**，返回ProducerJob，是`ReceiveChannel`
-
-```kotlin
-fun CoroutineScope.numbersFrom(start: Int) = produce<Int> {
-    var x = start
-    while (true) send(x++) // infinite stream of integers from start
-}
-```
-

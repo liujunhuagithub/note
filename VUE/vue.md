@@ -442,7 +442,7 @@ setup在==Created之前==执行(**beforeCreate-setup-Created**),不能访问  th
 - 内部设置生命周期回调函数
 - 原则：==**尽量不操作原始对象**==
 - `<script setup>`:语法糖，简化setup()写法，无需返回值。自动暴露导入的components，data，methods
-  - `defineProps`用来接收props，`defineEmit`声明触发的事件表，`useContext`用来获取组件context。
+  - `defineProps`用来接收props，`defineEmits`声明触发的事件表，`useContext`用来获取组件context。
   - `<script setup>`变量只针对本组件内部，子组件需要`defineExpose`**手动暴露给父组件**内部的变量供父组件标签引用子组件实例(非props机制)
   - `setup( )`默认暴露子组件所有property给组件外，父组件可任意引用。
   - 直接使用`await`即可，无需async setup()
@@ -783,7 +783,7 @@ const routes = [
 ### 获取相关对象
 
 1. useRouter：获取当前router   用于跳转
-2. useRouter ：获取当前route，是 **<u>响应式对象</u>**，可获取name path params query
+2. useRoute ：获取当前route，是 **<u>响应式对象</u>**，可获取name path params query
 3. \<template>中支持 $router \$route
 
 

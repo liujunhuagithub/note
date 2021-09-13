@@ -4,19 +4,19 @@
 
 主体Subject对资源Resource进行权限操作许可Permission，将功能(函数)看做资源
 
-1. ##基于角色的访问控制
+1. ## 基于角色的访问控制
 
    根据用户角色判断权限许可，间接。不利于扩展
 
-2. ##基于资源的访问控制
+2. ## 基于资源的访问控制
 
    根据用户是否有访问某资源的权限，直接
 
-3. ##Spring Security简介
+3. ## Spring Security简介
 
    ​	认证anthentication和授权authgorization是核心逻辑，继承了OAuth2.0框架，支持广泛的认证技术，是首先被推崇的解决方案。支持==URL对web的请求授权、方法访问授权和对象访问授权==。本质上是在web之前设置一个拦截器Filter，根据权限和认证进行许可。认证类型：基本认证HttpBasic()  、摘要认证，这两种方法不安全，通常使用表单认证formLogin()。新版用链式编程代替了复杂的xml文件
 
-#机制
+# 机制
 
 1. 基本类简介
 
@@ -26,6 +26,14 @@
 
    <img src="过滤连.png" alt="img" style="zoom:50%;" />
 
+   ![multi securityfilterchain](multi-securityfilterchain.png)
+
+   第一个匹配的SecurityFilterchain将被调用
+
+   - SecurityContextPersistenceFilter：请求时填充、响应后清除SecurityContext
+
+     
+
 3. 认证拦截器
 
    ![img](认证机制.png)
@@ -34,20 +42,39 @@
 
    ![image-20210108170316162](授权流程)
 
+   <img src="usernamepasswordauthenticationfilter.png" alt="usernamepasswordauthenticationfilter" style="zoom:50%;" />
+
+   ![securitycontextholder](securitycontextholder.png)
+
 4. RemenberMe拦截器
 
    <img src="记住我.png" alt="img" style="zoom: 33%;" />
 
-5. ##配置WebsecurityConfigurerAdapter
+5. ## 配置WebsecurityConfigurerAdapter
 
    - @EnableWebSecurity:开启WebSecurity模式， @Enable XXX开启某个功能
+
    - protected void configure(HttpSecurity http) 默认拦截所有请求并要求认证，可以重写此方法自定义url规则。
 
    - protected void configure(AuthenticationManagerBuilder auth) 配置自定义认证策略(内存，数据库，自定义userdetailsservice)
 
    - public void configure(WebSecurity web) 可忽略静态资源
 
-#基本
+   - 支持http重定向至https
+
+   - 启用Spring Security的默认配置，它将Servlet过滤器创建为名为SpringSecurityFilterchain的bean。此bean负责所有安全性（保护应用程序URL，验证已提交的用户名和密码，在应用程序中重定向到窗体中的日志状态等
+
+   - 与以下Servlet API方法集成：
+
+     httpservletrequest＃getRemoteUser（）
+
+     httpservletrequest.html＃getUserPrincipal（）
+
+     httpservletrequest.html＃iSuserInrole（java.lang.string）
+
+     httpservletrequest.html＃登录（java.lang.string，java.lang.string）
+
+# 基本
 
 ### 默认规则
 
@@ -91,9 +118,9 @@
 
    
 
-#表单认证formLogin()
+# 表单认证formLogin()
 
-###配置方法：configure(HttpSecurity http)开启
+### 配置方法：configure(HttpSecurity http)开启
 
 1. loginProcessingUrl()   ：执行认证，==标记作用==，不必存在。默认是与loginPage() 的路径一致。前端表单账密要发送到这个路径POST
 2.  loginPage()  ：自定义登录页面。loginProcessingUrl()默认与loginPage() 路径一致。需要permitAll()此路径 GET
@@ -102,9 +129,9 @@
 5. /logout是默认注销页面   .logoutUrl("注销处理器")   .logoutSuccessUrl("注销成功后跳转路径")logoutSuccessHandler更加灵活，可以手动设置删除cookie和session失效。由多个LogoutHandler流式处理
 6. deletecookies("remove").invalidateHttpSession(true)
 
-###认证调用服务UserDeatailsService
+### 认证调用服务UserDeatailsService
 
-1. #####自定义认证数据库模型
+1. ##### 自定义认证数据库模型
 
    1. 自定义的UserDetails及其数据库模型，必须有UserDeatils的username password ahthorities等关键信息。==重写UserDetails的hashCode和equals== (会话管理时更新会话信息表)
    2. List<GrantedAuthority> authorities保存权限列表
@@ -117,7 +144,7 @@
 
 
 
-###密码器PassWordEncoder
+### 密码器PassWordEncoder
 
 1. 前台信息加密后与数据库的密文(UserDeatils)对比。可以作为bean注入，可以在configure(http)配置对应UserDetailsService
 2. 密码器建议使用==BcryptPassWordEncoder==  ① 直接作为Bean注入即可②configure(AuthenticationManagerBuilder auth)配置
@@ -125,7 +152,7 @@
 
 # 资源授权authorizeRequests()  
 
-###特殊的规则放在前面，==先声明的优先，从头开始匹配成功即返回，不理会以后的==
+### 特殊的规则放在前面，==先声明的优先，从头开始匹配成功即返回，不理会以后的==
 
 1.   anyRequest()
 2.   antMatchers()
@@ -156,7 +183,7 @@ http.authorizeRequests().antMatchers("/css/**","/index").permitAll() // 都可�
 
 # 记住我rememberMe()
 
-##散列加密令牌
+## 散列加密令牌
 
 1. cookie保存hash散列，服务器根据session信息校验。默认生成UUID的key配合散列加密，这样重启服务器原来的cookie失效，可以指定key固定散列结果，但是不安全。cookie格式：username:expirationTime:hash
 
@@ -166,8 +193,7 @@ http.authorizeRequests().antMatchers("/css/**","/index").permitAll() // 都可�
    rememberMe().userDetailsService(userDetailsService).key("这是固定记住我的cookie")    //通过@Autowired注入
    ~~~
 
-
-##持久化令牌   将免密信息保存到数据库
+## 持久化令牌   将免密信息保存到数据库
 
 1. seris为主键，作为免密记录的Id ，只有新登录才会添加，免密登录不改变     token是检验值，每次免密登录都要改变。cookie格式：seris : token
 
@@ -267,7 +293,7 @@ http.authorizeRequests().antMatchers("/css/**","/index").permitAll() // 都可�
 
 ## CSRF
 
-###利用对已登录用户的信任进行非法操作，解决方法：①referer请求头不可靠②csrfToken认证(请求带csrfToken值，服务器进行校验)
+### 利用对已登录用户的信任进行非法操作，解决方法：①referer请求头不可靠②csrfToken认证(请求带csrfToken值，服务器进行校验)
 
 1. 默认开启CSRF跨站请求伪造防护功能，默认仅放行GET HEAD TEACE OPTIONS请求。
 
@@ -343,7 +369,20 @@ http.authorizeRequests().antMatchers("/css/**","/index").permitAll() // 都可�
 
 7. 开启sessionCreationPolicy(SessionCreationPolicy.STATELESS) 每次校验都要携带JWT获取信息手动保存至SecurityContext，不会存在session，由GC回收。
 
+8. `SecurityContextHolder`可设置上下文，为避免多线程竞争创建空的SecurityContext 并覆盖原有的
+
     
+
+   ```java
+   SecurityContext context = SecurityContextHolder.createEmptyContext(); 
+   Authentication authentication =
+       new TestingAuthenticationToken("username", "password", "ROLE_USER"); 
+   context.setAuthentication(authentication);
+   
+   SecurityContextHolder.setContext(context); 
+   ```
+
+   
 
    ```java
        protected void configure(HttpSecurity http) throws Exception {
@@ -383,7 +422,12 @@ http.authorizeRequests().antMatchers("/css/**","/index").permitAll() // 都可�
                protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
                    //根据RequeseContextHolder获取JWT判断
          //必须在UsernamePasswordAuthenticationFilter.class之前手动设置SecurityContext
-                   SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("jiji",null,null));
+   SecurityContext context = SecurityContextHolder.createEmptyContext(); 
+   Authentication authentication =
+       new TestingAuthenticationToken("username", "password", "ROLE_USER"); 
+   context.setAuthentication(authentication);
+   
+   SecurityContextHolder.setContext(context); 
                    filterChain.doFilter(request,response);
                }
            }, UsernamePasswordAuthenticationFilter.class);

@@ -10,11 +10,11 @@ Channel**双向**，可读写，可移动，可异步
 
 selector一个线程处理多个Channel
 
-APP必须通过Buffer处理Channel，Channel是连接数据源和Buffer的桥梁，Channel的读写是在Buffer角度而言的
+APP必须通过Buffer处理Channel，Channel连接数据源和Buffer的，**Channel的读写是以Buffer角度而言的**
 
 ![image-20210901213531171](image-20210901213531171.png)
 
-服务器实现模式为一个线程处理多个请求(连接)，即客户端发送的连接请求都会注册到多路复用器上，多路复用器轮询到连接有IO请求就进行处理
+服务器实现模式为**一个线程处理多个请求**(连接)，即客户端发送的<u>连接请求都会注册到多路复用器</u>上，多路复用器**轮询**到连接有IO请求就进行处理
 
 <img src="image-20210902105834367.png" alt="image-20210902105834367" style="zoom:50%;" />
 
@@ -34,22 +34,20 @@ APP必须通过Buffer处理Channel，Channel是连接数据源和Buffer的桥梁
 
 ## 类型
 
-基本数据类型(无BooleanBuffer，无StringBuffer)，通常时`ByteBuffer`。本质上时数组
+基本数据类型(无BooleanBuffer、无StringBuffer)，通常时`ByteBuffer`。本质上时数组，<u>线程不安全</u>
 
 wrap([])：将普通数组包装为缓冲区
 
+### ByteBuffer大小分配
 
-
-ByteBuffer大小分配
-·每个channel都需要记录可能被切分的消息，因为ByteBuffer 不能被多个channel共同使用，因此需要为每个channel维护一个独立的 ByteBuffer
-ByteBuffer 不能太大，比如一个ByteBuffer 1Mb的话，要支持百万连接就要1Tb内存，因此需要设计大小可变的 ByteBuffer
-。一种思路是首先分配一个较小的buffer，例如4k，如果发现数据不够，再分配8k的buffer，将4kbuffer内容拷贝至8k buffer，优点是消息连续容易处理，缺点是数据拷贝耗费性能
+每个channel维护一个独立的 ByteBuffer
+一种思路是首先分配一个较小的buffer，例如4k，如果发现数据不够，再分配8k的buffer，将4kbuffer内容拷贝至8k buffer，优点是消息连续容易处理，缺点是数据拷贝耗费性能
 
 另一种思路是用多个数组组成buffer，一个数组不够，把多出来的内容写入新的数组，与前面的区别是消息存储不连续解析复杂，优点是避免了拷贝引起的性能损耗
 
 ### 直接字节缓冲区
 
-`ByteBuffer.allocateDirect(）`：直接内存（OS处理)。直接作用于本地系统的IO操作，绕过JVM减少数据拷贝次数，性能更强。适用于长期存储的大数据，但**申请**内存代价大
+`ByteBuffer.allocateDirect()`：直接内存（OS处理)。直接作用于本地系统的IO操作，绕过JVM减少数据拷贝次数，性能更强。适用于长期存储的大数据，但申请内存**代价大**
 
 非直接内存（JVM堆内存)：普通`allocate`方法
 
@@ -57,13 +55,13 @@ ByteBuffer 不能太大，比如一个ByteBuffer 1Mb的话，要支持百万连�
 
 capacity：缓冲区大小，不可修改
 
-limit：可以操作数据的大小。填充put模式，限制等于buffer的容量。访问get模式下，limit等于写入的数据量。
+limit：可读取数据大小。填充put模式下，limit=capacity；访问get模式下，读取至limit值为止
 
-position：下一个要读取或写入的数据的索引。从0记
+position：下一个要读写的索引。从0记
 
-mark：指定position记号，默认-1
+mark：指定position记号，默认-1。position或limit小于mark值，置-1
 
-0<=mark <=position<= limit <= capacity
+`0<=mark <=position<= limit <= capacity`
 
 ### 常用API
 
@@ -75,15 +73,15 @@ put( )：向缓冲区写入数据
 
 <img src="image-20210902103508665.png" alt="image-20210902103508665" style="zoom:33%;" />
 
-flip( )：切换为访问get模式，position置0，limit置为原position
+`flip( )`：切换为访问get模式，position置0，limit置为原position
 
 <img src="image-20210902103613121.png" alt="image-20210902103613121" style="zoom:33%;" />
 
 
 
-get()读取一个单位 get(byte[])读取多个到指定数组 get(index)：读取指定index，不会修改position
+get()读取一个单位 get(byte[])读取多个到指定数组 get(index)：读取指定index
 
-put(X)写一个单位 put(byte[])将数组写入缓冲区 put(index，X)：指定index处写入，不会修改position
+put(X)写一个单位 put(byte[])将数组写入缓冲区 put(index，X)：指定index处写入
 
 批量传输到数组时，若数组大小和传输大小不匹配，需要指定数组位置
 
@@ -91,13 +89,15 @@ put(X)写一个单位 put(byte[])将数组写入缓冲区 put(index，X)：指�
 
 capacity/limit/position()：返回当前缓冲区状态     
 
- remaining：position到limit可用数量   hasRemaining是否还有可用元素
+ remaining：position到limit可用数量   hasRemaining：limit与position是否还有可用元素
 
 mark()：标记，mark为position     rewind()：清除mark，position置0  reset()：position置为mark标记
 
-clear( )：position置0，limit置为capacity
+`clear( )`：position置0，limit置为capacity。仅改变标志位，不清除数据
 
 compact( )：方法将所有未读的数据拷贝到Buffer起始处。然后将position设到最后一个未读元素正后面。limit置为capacity
+
+#### 批量读写
 
 # Channel
 
@@ -163,28 +163,29 @@ selector一个线程处理多个Channel
   - 确定哪些通道有**事件发生**（已经准备好进行读取或写入），并获取事件，针对每个事件进行相应的**处理**
   - 一个Selector对应多个Channel
 - `SelectableChannel`：支持事件检查的Channel。只有它才能注册于selector
-  - FileChannel不是可注册的，网络Channel都支持
-  - 必须设置为**非阻塞模式**`configureB1ocking(fa1se)`
+  - 必须设置为**非阻塞模式**`configureB1ocking(fa1se)`，
+    - accept返回null，read返回-1，connect()、write()非阻塞，直接返回必须判断
   - **一个Channel**可注册于**多个Selector**，但**同一个Selector不能重复**
+  - 同一Channel重复注册同一Selector，返回相同SelectionKey
   - 每个Channel对应一个Buffer。
   - Channel负责传输数据，Buffer负责读写数据
+  - FileChannel不是可注册的，网络Channel都支持
+  - 
 - `SelectionKey`：记录两个关系，包括**关注的操作**、**已就绪的操作**
-  - OP_READ OP_WRITE  OP_CONNECT     OP_ACCEPT
+  - 关注的操作：OP_READ      OP_WRITE     OP_CONNECT     OP_ACCEPT
   - 注册多个事件，使用位操作 `|` 连接
 - buffer(1)-----(1)Channel (n)-------(1)Selector(1)-------(1)Thread
 
 ### 处理机制
 
-1. 向Selector注册SelectableChannel，返回SelectionKey
+1. 向Selector注册SelectableChannel，返回SelectionKey。可关联buffer
 2. selector.select( )更新所有Channel状态
    - 检查已取消键的集合,如果该集合非空,就把该集合中的键从另外的两个集合中移除,注销相关的通道，这个步骤结束后，已取消键的集合应该是空的
    - 检查已注册键的集合中所有键的 interest集合，确定每个通道所关心的操作是否已经就绪
    - Select()方法返回的是从上一次调用select()方法后进入就绪状态的通道的数量
 3. selectedKeys()：获取已就绪的key
-4. 迭代遍历已就绪的key，判断事件类型并处理
+4. 迭代遍历已就绪的key，判断事件类型并获取channel处理，一般会强制转换socketchannel
 5. 处理完毕remove( )取消已处理完毕的key
-
-
 
 - 
 
@@ -200,7 +201,7 @@ selector selector = selector.open();
 //5．将通道注册到选择器上，并且指定“监听接收事件”
 sschanne1.register(selector，selectionkey . OP_ACCEPT);
 //6.轮询获取Selectorde 已经“准备就绪”的事件
-while (selector.selectO>0){
+while (selector.select()>0){
 	system. out.print1n("轮一轮");
 //7．获取当前选择器中所有注册的“选择键(已就绪的监听事件)”
 	Iterator<selectionkey> it = selector.selectedKeys().iterator();
@@ -234,16 +235,21 @@ selectionKeyit.remove();
 ## 常用API
 
 - Selector
-  - select()：更新就绪通道，返回已就绪数量
+  - `select()`：更新就绪通道，返回已就绪数量，并注销已取消键集。会阻塞
+  - selectedKeys():返回已就绪的SelectionKey
+  - keys()；返回已注册的SelectionKey
+- SocketChannel
+  - connect()：连接，非阻塞
+  - finishConnect()：判断连接是否成功，非阻塞
 - SelectionKey
   - channel()方法,返回与该键对应的通道
   - selector()方法，返回通道注册的选择器
   - cancel()方法,终结这种特定的注册关系。断开连接需要调用
   - isvalid()方法判断注册关系是否有效
-  - interestOps()方法返回你关心的操作，是以整数的形式进行编码的比特掩码,可以使用位运算检查所关心的操作
+  - attach()关联buffer
+  - attachment()返回关联的buffer
+  - interestOps()方法返回关心的操作或设置关心操作
   - isReadable()), isWritable(), isConnectable(), isAccetable()等方法检测操作是否就绪
-
-
 
 # AIO(NIO2)
 

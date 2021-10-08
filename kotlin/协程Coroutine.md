@@ -2,15 +2,19 @@
 
 # 协程Coroutine
 
-可看作用户态轻量级线程。将**异步+回调**的**复杂写法**，抽象为顺序**串行**的表达，**底层库处理异步性**。适用于IO密集型、嵌套回调、并发编程。本质上还是回调
 
-**一个线程有多个协程，但同一时刻只有一个协程运行**
 
-协程要维护**局部的上下文**，重新进入上次挂起的位置，上下文恢复不变
+可看作**用户态轻量级线程**，**脱离于主线程执行**。
+
+**简化处理异步耗时任务及其回调**。将**异步+回调**的**复杂写法**，抽象为顺序**串行**的表达，**底层库处理异步性**。适用于IO密集型、嵌套回调、并发编程。本质上还是回调
+
+kotlin协程自动要维护**局部的上下文**，重新进入上次挂起的位置，上下文恢复不变
 
 协程**挂起**suspend**不会阻塞线程**，几乎无代价，完全由程序控制，无需OS干预，
 
 挂起时，线程回收到池中；结束挂起，在池中空闲的线程恢复执行。使用**线程池模拟协程实现**
+
+**多个子协程并行运行，单个子协程内代码同步执行。协程可看作轻量级线程**
 
 ## 开启协程
 
@@ -20,11 +24,9 @@
 
 启动**新**协程，返回持有协程引用的**Job**任务。不指定则启动本作用域协程
 
-- 不指定scope和context，**默认**作为父的**子协程**
+- 不指定scope和context，**默认**作为父域的**子协程**
 - 返回的**Job没有包含返回值**
 - 可在`suspend`函数内启动
-
-**多个子协程并行运行，单个子协程内代码同步**
 
 ##### Job状态
 
@@ -38,24 +40,30 @@ job.`join`( )：**协程域内显式**等待某job运行完毕，**期间挂起�
 
 
 
-### async(suspend函数异步并行)
+### 异步async(suspend函数异步并行)
 
-默认`suspend`函数耗时操作**顺序串行**某些业务可并行，可改为异步操作
-
-`async (context，start，block) {}`：**创建子协程**，与其他协程**并行**，
+`作用域.async (context，start，block) {}`：**创建有返回值子协程**，与其他协程**并行**，
 
 - 返回`Deferred`(Job子类，轻量级非阻塞可取消future) ，**包含结果**
 - 可在`suspend`函数内启动
 - 懒启动`start=CoroutineStart.LAZY`：协程不自动启动，只有 ①显式`start()` ②`await( )`才启动
   - 仅await( )可能导致顺序**串行执行**
+- 默认`suspend`函数耗时操作**顺序串行**.有时某些业务可并行，`async`可将suspend构造为有返回值的子协程
 
-`await()`：延期返回`async`的`suspend`函数运行完毕的结果。常常try-catch在此处处理异常
+```kotlin
+        launch{
+            val deffer1 = async{ awaitResult<List<JsonObject>>{ dbService.getContentList(it) } }
+            val deffer2 = async{ awaitResult<List<JsonObject>>{ dbService.getAuthorList(it) } }
+            val contents = deffer1.await()
+            val authors = deffer2.await()
+            val reuslt = contents.map{ content -> 
+                content.put("author", authors.filter{ ... }.first())
+            }
+```
 
-#### 异步风格
+`await()`：延期返回`async`的`suspend`结果。try-catch在此处处理异常
 
 `GlobalScope.async {   }`：作为**普通函数**，非suspoend。任何地方使用。用于异步调用
-
-`runBlocking` 中阻塞主线程调用`await`返回结果
 
 #### Deferred状态
 
@@ -75,13 +83,13 @@ job.`join`( )：**协程域内显式**等待某job运行完毕，**期间挂起�
 
 ### suspend挂起函数
 
-**`suspend`**修饰：执行**完毕自动恢复**resume，函数体**启动新协程**。常用于执行耗时操作
+**`suspend`**修饰：执行**完毕自动恢复**resume。常用于执行耗时操作
 
-kotlinx.coroutines内置，`delay`( ):**挂起协程**指定时间，**协程内使用**
+- `suspend`：**协程从执行它的线程上脱离**，该线程被回收(线程池)或做其他(主线程)
+  - suspend函数本身**切换到**指定的**其他线程**运行
+- `resume`：suspend函数在其他线程运行完毕后，**根据调度器分配线程执行 挂起点后的协程体代码**
 
 只能在**协程体**、**suspend函数**内调用。不能使用Thread启动
-
-
 
 ## 协程配置
 
@@ -89,11 +97,9 @@ kotlinx.coroutines内置，`delay`( ):**挂起协程**指定时间，**协程内
 - `start` ：启动选项  默认 CoroutineStart.Default
 - `block`：业务代码块，suspend修饰
 
-
-
 ### 协程上下文CoroutineContext
 
-协程调度器：确定相应的协程使用哪个或哪些线程来执行。**默认无指定父协程上下文**
+协程**调度器**：确定相应的协程使用哪个或哪些线程来执行，所有协程必须在调度器运行。**默认缺省为父协程上下文**
 
 Dispatchers是CoroutineContext的实现
 
@@ -113,7 +119,7 @@ coroutineContext[ Job ]获取
 
 协程只能在**指定的CoroutineScope **中启动。
 
-结构化并发：多个分开的并发路径最终再次连接起来，使得符合因果关系。<u>不同CoroutineScope中的协程具有不同的声明周期</u>，能够控制内部协程的生命周期，可以取消内部所有协程
+结构化并发：多个分开的并发路径最终再次连接起来，使得符合因果关系。<u>不同CoroutineScope中的协程具有不同的生命周期</u>，能够控制内部协程的生命周期，可以**取消内部所有协程**，避免任务泄露
 
 - 创建作用域：`CoroutineScope(指定scope)`
 - 作用域特点：
@@ -133,19 +139,20 @@ coroutineContext[ Job ]获取
   - 主协程，只能启动其他并发的新协程，不能别其他协程启动。默认使用Dispatcher.Unconfined调度器
   - 常规函数。用于桥接阻塞和非阻塞代码，很少使用
   - 由于**本身阻塞**，故而代码**块内**的**挂起**操作**对域外**表现为**线程阻塞**
-- `某作用域.launch`：新建自定义域
+- `某作用域.launch`：自定义域中启动协程
 
 #### 协程内启动
 
 - `launch/async{ }`：**默认**不指定：继承父协程作用域，**作为父协程的并行子协程**
   - 本身是普通函数，**父协程一直运行，不会挂起**
-- `coroutineScope{ }`自定义作用域构建器：创建新作用域，**并不启动协程**
+- `coroutineScope{ }`自定义作用域构建器：创建新作用域，**并不创建新的协程**
   - 本身是`suspend`函数，**父协程一直挂起**
   - 用于将各种相互依赖**子任务组合为大的父任务**，用于自定义结构化并发
   - **不阻塞线程**。释放线程资源
 - `withContext( scope) { }`：切换指定作用域运行，将长耗时操作从UI线程切走，完事再切回来
   - 本身是`suspend`函数，**父协程一直挂起**
   - 并不创建新协程
+- 外部不能访问协程内的变量，但是**协程内部可访问外部变量**
 
 ```kotlin
 fun main() = runBlocking {
@@ -172,6 +179,12 @@ suspend fun doWorld() = coroutineScope {  // this: CoroutineScope
 ==**子协程抛出异常`非CancellationException`不处理，整个父协程作用域都会被自动取消**==
 
 ==**父协程/作用域自动等待  所有子协程、代码块运行完毕，才结束**==。其他作用域协程需显式join
+
+### 基础设施层和业务层
+
+基础设施层是具体的底层实现，提供了概念和语义上最基本的支持。包括设置作用域内容，调度方式的细节  包名kotlin开头
+
+业务层是抽象的通用配置，包名kotlinx开头
 
 ## 协程取消
 
@@ -244,7 +257,7 @@ if(!isActive) return@launch
 
 
 
-## 同道Channel
+## 通道Channel
 
 **协程间传输数据流**，**延时**等待数据`send( ) / receive( )`。suspend协程而非阻塞线程
 
@@ -279,4 +292,3 @@ fun CoroutineScope.numbersFrom(start: Int) = produce<Int> {
     while (true) send(x++) // infinite stream of integers from start
 }
 ```
-

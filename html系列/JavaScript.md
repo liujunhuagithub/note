@@ -98,6 +98,7 @@ Task Queue 的异步任务分为   `微任务` 、`宏任务`；**微任务优�
 1. 反引号\`\`:用于模板字符串：**\`pre  ${varName}   suf\` **和   **多行字符串**
 2. str：作为字符的数组
 3. Symbol：类似str。Symbol(str)表示独一无二的值，解决命名冲突问题。不能与其他数据运算
+4. js中所有数字Number用浮点表示，故而只能表示53位整数。超出2^53无法表示。n后缀表示安全的Integer
 
 ### 运算符
 
@@ -129,13 +130,15 @@ for (let key of Object.keys(o)) {
 }
 ```
 
-
+for-in 自身+继承  
 
 ## Array
 
 length赋一个新的值会导致变化
 
 默认根据str排序，数字也是
+
+...可用于深拷贝数组
 
 
 
@@ -159,20 +162,23 @@ length赋一个新的值会导致变化
 
    hasOwnProperty()   是否自身拥有（包括父+子）的，而不是原型得到的
    
-   Object.is 判断两个值是否完全相等
-   Object.assign(base,after) 对象的合并
+   Object.is 判断两个值是否完全严格相等(===)
+   Object.assign(base,after) 对象的合并，浅拷贝
    
-   Object.keys() / values() 获取所有 keys / values
+   Object.keys() / values() 获取所有 keys / values，仅自身，无继承无Symbol
    Object.entries()    [ key,value ]  数组
    
    Object.fromEntries( map)： 从map构造obj
+   
+5. 函数形参、数组、对象支持尾逗号
 
 ## Map和Set
 
 1. **KEY可为任意类型，而Object的property只能是str**
 2. Map本质上时**二维数组**  const arr = [...map]输出二维数组的元素  `[keyn,  value1]`  ；Set可用Array初始化
 3. **只能用get访问，不能[ ]**,    Object可以**[  ]**访问
-4. get/has/delete/set方法操作
+4. get/has查键/delete/set方法操作
+5. Map转为Json：key为字符串，转为对象json；key为其他，转为二维数组json
 
 
 
@@ -181,7 +187,7 @@ length赋一个新的值会导致变化
 ==设置默认值和函数形参配合使用==，可用于array(  )  对象{  }
 
 ```
-let {name=默认值, 原属性名:新变量} = person;
+let {name=默认值, 原属性名:新变量=默认值} = person;
 ```
 
 支持...array / map / object 打散成序列，map打散成[ k,v]  , [k,v] ...
@@ -189,6 +195,8 @@ let {name=默认值, 原属性名:新变量} = person;
 对象复制：property可直接引用变量，key为变量名，value为变量值
 
 ...args：生成参数数组
+
+仅严格等于undefined才会赋默认值，null不会赋默认值
 
 ## 函数
 
@@ -340,6 +348,7 @@ Promise.reject()	//生成rejected 状态的Promise
 1. resolve(value )执行：转换成fulfilled状态，设置值value，传递给then回调，回调参数为保存的value值。
 2. reject(value )执行：转换成rejected 状态，设置值value，传递给catch回调，回调参数为保存的value值。
 3.  catch错误发生时专门捕获异常，==整条调用链==都可以被.catch捕获，用于==统一异常处理==
+4. finally于调用链末尾，比如执行其回调
 
 ### 调用链
 
@@ -390,11 +399,11 @@ Promise.race([p1, p2]).then(function (result) {
 3. **await** ***<u>只能放在 async 函数内部</u>***
 
    后跟Promise：==阻塞后面的代码，等待标识的Promise返回resolve值==，获取返回值 
-   后跟非Promise：按同步程序返回值处理
+   后跟非Promise：用Promise.resolve包装直接返回 
 
 4. 当 async 函数中只要一个 await 出现 reject 状态，则后面的 await 都不会被执行，可.catch()统一异常处理
 
-5. **Promise.all( [ Promise数组 ] )**：全部执行完毕返回结果Array
+5. **await+Promise.all( [ Promise数组 ] )**：**并发**执行完毕返回结果Array
 
 ## 内置对象
 
@@ -526,7 +535,7 @@ module.hello();
 )}
 ```
 
-1. ES6导入import的变量是 ==引用==，而非拷贝，==会动态变化==，(a,b,c引用d的某变量v，v一旦变化，abc中所有值都会变化)
+1. ES6导入import的变量是 ==引用==，而非拷贝，==会**动态变化**==，(a,b,c引用d的某变量v，v一旦变化，abc中所有值都会变化)
 2. import不论写在何处，最优先执行
 3. 编译时运行导入的模块(整个模块的语句都会执行)，
 4. module==仅执行一次==，不论import几次
@@ -538,7 +547,7 @@ module.hello();
 导入变量： `require`
 
 1. `module.exports = xxx`的方式来输出模块变量万能
-2. CommonJs import的变量是 ==拷贝==，而非引用
+2. CommonJs import的变量是 ==拷贝==，而非引用。不会变化
 3. 运行时加载，仅一次
 
 

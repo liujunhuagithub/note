@@ -44,7 +44,7 @@ kotlin不能和java语法混合，groovy可以
   - **`val`** 常量：只能赋值一次，可以**先声明后赋值，但只能赋值一次**
     - 同java：`private final static Class v`      +  `public final static getV( )`
     - 尽量使用val常量，线程安全
-  - **`const val`编译期常量**：  必须**初始化赋值**(编译时赋值)
+  - **`const val`编译期常量**：  必须**初始化赋值**(编译时赋值)。同java static final
     - **编译时赋值**
     - 位于顶层或者是 *object* 声明或 companion object的一个成员
     - <u>类型**只能**是常见的**基本数据类型**</u>：数字、String、Boolean
@@ -349,7 +349,7 @@ Iterator：每个**计算步骤**依次处理**整个集合**，生成中间集�
 
 `map`：映射  `mapIndexed`：下标映射 {idx,value ->}    。，必须非null
 
-`map/IndexedNotNull`：过滤null值 
+`map/IndexedNotNull`：过滤映射后的null值 
 
 `mapKeys/Values`：针对Map的本身K/V转换，生成新的Map，另一方不变。key相同后者会覆盖
 
@@ -644,6 +644,8 @@ fun sum(a:Int , b:Int):Int=a+b
 
 - lambda显式返回值：`return@lambda标签  value`。否则隐式返回最后一行
 
+- lambda**内部可访问外部作用域**，反之不可
+
   ```kotlin
   var j:(Int,Int) ->Int={x,y -> x+y}		//常用于stream/lambda运算
   var i={x : Int , y : Int ->x+y} 		//常用于闭包写法、返回函数类型
@@ -733,7 +735,7 @@ str=str?.let{
 - **`.let()`**：调用者！=null执行**单参**lambda函数，返回**lambda执行结果**。不支持this
 - **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。不支持this
 - .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**，支持this
-- takeIf：根据lambda的布尔结果决定返回接收者对象还是null
+- takeIf：根据lambda的布尔结果决定返回**接收者对象**还是null。直接在对象实例上调用,避免了临时变量赋值的麻烦
 - 支持执行函数引用    **: :具名函数名**
 - `?.let`  和 `.let` 不同。前者null不执行，后者null会报错
 
@@ -913,6 +915,10 @@ class Car(_name: String,override var wheels: Int = 4) : Movable {
 }
 ```
 
+#### 密封接口 sealed interface
+
+
+
 #### 函数式接口 fun interface
 
 只有一个抽象方法，用于**创建lambda实例**。常用于java转kotlin。kotlin有函数类型，所以函数式接口不常用
@@ -1000,6 +1006,7 @@ fun eval(expr: Expr): Double = when(expr) {
   - copy(类头声明时var变量值)：克隆对象。利用**主构造函数**(而非次)，创建新实例。特别注意没有完整赋值时需手动赋值
   - 所有field的set/get
 - 用于model、entity，保存数据
+- `@JvmRecoder`：java解析为recoder类型
 
 ### object 单例模式
 
@@ -1186,12 +1193,6 @@ class MutableUser(val map: MutableMap<String, Any?>) {
 
 ![image-20210827115224499](image-20210827115224499.png)
 
-### 类元数据
-
-obj.javaClass：类信息
-
-
-
 # < >泛型
 
 泛型是一种编译时的安全检测机制，它允许在定义类、接口、方法时使用类型参数，声明的类型参数在使用时用具体的类型来替换。泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数。在本章我们将对泛型进行详细讲解。
@@ -1213,13 +1214,13 @@ obj.javaClass：类信息
 
 ## 泛型约束
 
-声明上界：  `<T: 父类上届>`
+声明上界：  `<T: 父类上界>`
 
 默认泛型**类**的**父子类关系** 与 泛型**元素**的父子关系 **无关**。同Java
 
-`out`：协变，泛型作为函数输出（生产）。**只读不写**，限上界泛型属于哪个类的子类。同java `<? extend XXX>`
+`out`：协变，泛型为函数输出(返回值)(生产),**只读不写**，限上界泛型属于哪个类的子类,同java `<? extend XXX>`。子类泛型对象可以赋值给父类泛型对象
 
-`in`：逆变，泛型作为函数输入（消费）。**只写不读**，限下界泛型属于哪个类的父类.同`java <? superXXX>`
+`in`：逆变，泛型为函数输入(参数)（消费）。**只写不读**，限下界泛型属于哪个类的父类.同`java <? superXXX>`。父类泛型对象可以赋值给子类泛型对象
 
 ```kotlin
 class MagicBox<T>(item:T){
@@ -1234,9 +1235,11 @@ class MagicBox<T>(item:T){
 }
 ```
 
-## 泛型擦除
+## reified
 
-类型安全检查在编译时进行，运行时类型信息被擦除。禁止**`is`**检测
+类型安全检查在编译时进行，运行时类型信息被**擦除**。**默认禁止`is`**检测
+
+`reified`：编译时不擦除类型信息，**支持`is`**检测类型
 
 # 扩展
 
@@ -1292,7 +1295,7 @@ kotlin不同于java，类元信息是`KClass`
 
 kotlin运行时kotlin基本类型(引用)会映射成java基本数据类型
 
-Java可能返回null       声明**! 平台类型**便于表示，配合 ?. 
+Java可能返回null ，kotlin代码声明**! 平台类型，配合@Nullable/@NotNull**便于表示，配合 ?. 
 
 无需调用get/set方法
 
@@ -1304,12 +1307,17 @@ java的getClass改为kotlin的  `ClassName : : class.java`或 `object. javaClass
 
 @file：JvmName （文件类名）：将kotlin文件暴露为Java类
 
+`@JvmName`：指定编译类名
+
 `@JvmField`：将kotlin的field变为java类成员变量，伴生对象中自动转为`static`
 
-`@JvmOverload`：强制  有默认参数的函数 重载，便于Java调用
+`@JvmOverload`：强制  有**默认参数的函数** 重载，便于Java调用
 
 `@JvmStatic`：注解于**伴生对象**内的**函数**，static变量用`@JvmField`注解
 
 `@Throws(checked exception.class)`：注解于**可能抛出java受检查异常**的**函数**中(java必须处理受检查异常，kotlin不用)
 
+`@JvmRecord`：注解于data class，转换成java recoder类型
+
 匿名函数处理：kotlin编译器转换成FuncationN接口，使用代理/反射调用。（N为参数个数，从0开始)
+

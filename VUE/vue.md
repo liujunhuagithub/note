@@ -784,7 +784,7 @@ const routes = [
 
 1. useRouter：获取当前router   用于跳转
 2. useRoute ：获取当前route，是 **<u>响应式对象</u>**，可获取name path params query
-3. \<template>中支持 $router \$route
+3. \<template>中支持 `$router \$route`
 
 
 ### 路由跳转控制

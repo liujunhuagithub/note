@@ -541,7 +541,7 @@ fun Request.getBody() =
 
 ## 标签label
 
-显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受`lambda`函数的**方法同名**`return@lambdaName`
+显式：`label Name@`：标签名后跟`@`字符.	隐式：**最接近fun声明的函数**
 
 **无标签：整个父函数结束**
 
@@ -550,7 +550,7 @@ ints.forEach lit@{
     return@lit //结束当前，继续下次continue
 }
 ints.forEach {
-    return //结束整个循环break(隐式标签名forEach)
+    return //结束整个循环break
 }
 
 ```

@@ -53,7 +53,8 @@ kotlin不能和java语法混合，groovy可以
 - 解构赋值：**`var ( narName ... )=支持解构的变量`**
 
 - **`vararg`**：函数可变参数，***内部作为数组处理***而非集合。和具名参数配合<u>出现在任意位置</u>
-  - **`*`**：可展开**数组**，**<u>不支持集合</u>**
+  
+  - **`*`**：可展开**数组**用于vararg，**<u>不支持集合</u>**
   
 - Kotlin系统类型**分为可空类型和不可空类型**，两者往往存在继承关系。编译期强制检查
 
@@ -151,7 +152,7 @@ kotlin内置的函数，类似assert，可校验关键逻辑
 
 java有基本数据类型和引用类型；
 
-==kotlin**中一切都是引用数据类型**==
+==kotlin**中一切都是引用数据类型**==，没有默认值
 
 kotlin编译器将：==**不可空基本类型、XXXArray原生数组编译为jvm基本类型；可空基本类型编译为包装类型装箱**==
 
@@ -333,7 +334,7 @@ Iterator：每个**计算步骤**依次处理**整个集合**，生成中间集�
   - 不同平台不同实现，JVM中运行时映射成java Object
 - Unit：没有返回值。同java void，由于kotlin一切都是类/对象，为解决泛型专门做的包装
 - Nothing?：**返回值只能null**但没有意义(<u>null的包装</u>)。`var nul: Nothing?=null`
-- Nothing：表达一个从来不存在的返回值。配合TODO( )抛出异常
+- Nothing：表示函数不能正常返回，不能声明变量。配合`TODO( )`抛出异常
 - 函数类型：**函数本身作为返回值**，即某函数返回一函数。
   - `methodName(...)：（argTypr...）->返回函数的返回值类型`
 
@@ -500,6 +501,8 @@ when {
 
 任何实现iterator迭代器的对象，通常针对Range、Array、List、Map、Set
 
+break和continue支持配合标签`@label`使用
+
 ```
 for(循环遍量 in 可循环对象){
 
@@ -538,31 +541,37 @@ fun Request.getBody() =
 
 ## 标签label
 
-常用于函数嵌套时，**跳出内层lambda函数的当前循环**，继续循环下一次迭代。(类似continue，没有break)
-
-显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受lambda函数的方法同名`return@labelName`
+显式：`label Name@`：标签名后跟`@`字符.	隐式：与调用/接受`lambda`函数的**方法同名**`return@lambdaName`
 
 **无标签：整个父函数结束**
 
 ```kotlin
-fun foo(){
 ints.forEach lit@{
-    return@lit //return@forEach
-	}
+    return@lit //结束当前，继续下次continue
+}
+ints.forEach {
+    return //结束整个循环break(隐式标签名forEach)
 }
 
 ```
 
 ## 返回值
 
-- return@lamdba标签名：返回单个lambda，**继续下次流操作**(类似continue，没有break)
-- return：返回**上一层函数结果**
-- return@标签名：结束指定标签对应的函数体
+- return@lamdba标签名：lambda函数体返回，针对**forEach为continue**
+- return：返回**最接近fun声明的函数**
+- return@标签名：结束指定标签对应的整个函数体
 
 ```kotlin
 fun foo() {
+        listOf(1, 2, 3, 4, 5).forEach {
+            if (it == 3) return  // 结束foo，隐式foo
+            print(it)
+        }
+        print(" done with anonymous function")
+    }
+fun foo() {
     listOf(1, 2, 3, 4, 5).forEach(fun(value: Int) {
-        if (value == 3) return  // 继续流操作
+        if (value == 3) return  // 继续流操作，隐式本函数参数
         print(value)
     })
     print(" done with anonymous function")
@@ -736,6 +745,7 @@ str=str?.let{
 - **`.also()`**:调用者！=null执行**单参**lambda函数，返回**调用/接受者本身**。不支持this
 - .with(接收者，单参lambda)：传入的接收者调用lambda，返回该**lambda执行结果**，支持this
 - takeIf：根据lambda的布尔结果决定返回**接收者对象**还是null。直接在对象实例上调用,避免了临时变量赋值的麻烦
+- `use`：自动关闭资源，常用于AutoCloseable的实现类
 - 支持执行函数引用    **: :具名函数名**
 - `?.let`  和 `.let` 不同。前者null不执行，后者null会报错
 
@@ -839,7 +849,7 @@ var age=10
 
 ### lateinit var延迟初始化
 
-**`lateinit var`**提示编译器，该field会在使用前通过**其他逻辑显式赋非null值**。只能`var`
+**`lateinit var`**提示编译器，该field会在使用前通过**其他逻辑显式赋非null值**。只能`非空var`
 
 ### by lazy{ value}惰性初始化
 
@@ -946,11 +956,11 @@ fun main() {
 
 ## kotlin嵌套类、接口  /  inner内部类
 
-嵌套类、接口：无修饰符，**不能访问外部类**
+嵌套类、接口：无修饰符，**不能访问外部类**。同java静态内部类
 
 内部类：`inner`修饰，**可以访问外部类成员**。同java <u>成员内部类</u>
 
-- 内部类访问外部类：**`this@外部类名 . 外部成员`**
+- 命名冲突时，内部类访问外部类：**`this@外部类名 . 外部成员`**
 - 内部类访问外部类的<u>父类</u>：**`super@外部类名 . 外部成员`**
 
 ## 特殊类
@@ -961,7 +971,7 @@ fun main() {
 
 可实现接口，不能继承类。
 
-每个枚举常量都有`name`、`ordinal`，实现 Comparable接口， 其中自然顺序是定义的顺序
+每个枚举常量都有`name`、`ordinal(0开始)`，实现 Comparable接口， 其中自然顺序是定义的顺序
 
 ```kotlin
 枚举类名.valueOf("常量名")  //获取某常量实例
@@ -1028,7 +1038,7 @@ object Singleton {
 
 #### 单例对象表达式(同java匿名内部类)
 
-生成**只调用一次**的**子类唯一实例**，不必有父类，同java 匿名内部类。常用于注册监听。`this`对象本身`this@外部类名`，**立即初始化实例**
+生成**只调用一次**的**子类唯一实例**，可有父类，同java 匿名内部类。常用于注册监听。`this`对象本身`this@外部类名`，**立即初始化实例**
 
 **可修改外部变量**，与java不同
 
@@ -1216,6 +1226,8 @@ class MutableUser(val map: MutableMap<String, Any?>) {
 
 声明上界：  `<T: 父类上界>`
 
+上界Any非空
+
 默认泛型**类**的**父子类关系** 与 泛型**元素**的父子关系 **无关**。同Java
 
 `out`：协变，泛型为函数输出(返回值)(生产),**只读不写**，限上界泛型属于哪个类的子类,同java `<? extend XXX>`。子类泛型对象可以赋值给父类泛型对象
@@ -1243,11 +1255,12 @@ class MagicBox<T>(item:T){
 
 # 扩展
 
-扩展类的新功能**无需继承类**(装饰器模式)，扩展属性和扩展函数的本质是以静态导入的方式来实现的
+扩展类的新功能**无需继承类**(装饰器模式)，扩展属性和扩展函数的本质是以**静态导入**的方式来实现的
 
 - **接收者**：被扩展的对象本身。使用`this`访问
 - 没有增加类的成员
 - 新建<u>公共顶层源文件</u>，扩展属性、函数都放到<u>包</u>中，作为<u>工具类</u>，使用时`import`
+- 重名时：**成员优先**，扩展失效
 
 ## 扩展函数
 
@@ -1277,7 +1290,7 @@ fun MyClass.Companion.printCompanion() { println("companion") }
 
 **不能有默认值，只能显式通过get/set定义**
 
-
+可声明泛型
 
 # 元编程
 
@@ -1285,7 +1298,7 @@ fun MyClass.Companion.printCompanion() { println("companion") }
 
 kotlin不同于java，类元信息是`KClass`
 
-获取KClass：`ClassName : : class`
+获取KClass<类名>：`ClassName : : class`、`实例: : class`
 
 `KClass.java`------->Class              `Class.kotlin`------>KClass
 
@@ -1295,9 +1308,12 @@ kotlin不同于java，类元信息是`KClass`
 
 kotlin运行时kotlin基本类型(引用)会映射成java基本数据类型
 
-Java可能返回null ，kotlin代码声明**! 平台类型，配合@Nullable/@NotNull**便于表示，配合 ?. 
+- Java可能返回null ，kotlin `IDE`提示为**平台类型 ! 可接受null，放弃安全检查**(可看作可null类型)
+- 配合`@Nullable/@NotNull`常使用 `?.`安全 调用
 
 无需调用get/set方法
+
+无需捕获受检查异常
 
 java的getClass改为kotlin的  `ClassName : : class.java`或 `object. javaClass`
 
@@ -1305,17 +1321,17 @@ java的getClass改为kotlin的  `ClassName : : class.java`或 `object. javaClass
 
 在kotlin注解，生成便于java理解的字节码
 
-@file：JvmName （文件类名）：将kotlin文件暴露为Java类
+@file：JvmName （文件类名）：将kotlin文件暴露为Java类，**顶层成员为静态**
 
 `@JvmName`：指定编译类名
 
-`@JvmField`：将kotlin的field变为java类成员变量，伴生对象中自动转为`static`
+`@JvmField`：将kotlin的field变为java类成员变量，伴生对象 / 单例对象 中自动转为`static`
 
 `@JvmOverload`：强制  有**默认参数的函数** 重载，便于Java调用
 
-`@JvmStatic`：注解于**伴生对象**内的**函数**，static变量用`@JvmField`注解
+`@JvmStatic`：注解于**伴生对象/ 单例对象**内的**函数**，static变量用`@JvmField`注解
 
-`@Throws(checked exception.class)`：注解于**可能抛出java受检查异常**的**函数**中(java必须处理受检查异常，kotlin不用)
+`@Throws(checked exception::class)`：注解于**可能抛出java受检查异常**的**函数**中(java必须处理受检查异常，kotlin不用)
 
 `@JvmRecord`：注解于data class，转换成java recoder类型
 
